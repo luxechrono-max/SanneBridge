@@ -1,0 +1,13 @@
+{
+  "name": "SanneBridge",
+  "description": "Sanne-only bridge: choose one of the latest five Sanne MP3 clips and upload it to the current Discord conversation.",
+  "authors": [
+    {
+      "name": "Noba"
+    }
+  ],
+  "main": "src/index.ts",
+  "vendetta": {
+    "icon": "voice_bar_mute_off"
+  }
+}
