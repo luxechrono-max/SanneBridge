@@ -321,4 +321,4 @@ const onLoad = () => {
 const onUnload = () => {
   console.log("[SanneBridge] unloaded");
 };
-const settings = SanneSettings;exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro.common,vendetta.metro,vendetta.ui.components,vendetta.ui.assets);
+const Settings = SanneSettings;exports.Settings=Settings;exports.onLoad=onLoad;exports.onUnload=onUnload;return exports;})({},vendetta.metro.common,vendetta.metro,vendetta.ui.components,vendetta.ui.assets);
