@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install esbuild
         run: npm install -g esbuild
 
       - name: Build plugin
@@ -36,24 +36,21 @@ jobs:
             --outfile=index.js \
             --global-name=SanneBridge
 
-      - name: Convert bundle to plugin expression
+      - name: Generate plugin hash
         run: |
-          node - <<'NODE'
-          const fs = require("fs");
-          const js = fs.readFileSync("index.js", "utf8");
-          const start = js.indexOf("(() => {");
-          if (start === -1) throw new Error("IIFE wrapper not found");
-          const end = js.lastIndexOf("})();");
-          if (end === -1) throw new Error("IIFE ending not found");
-
-          const expression = js.slice(start, end + 4);
-          fs.writeFileSync("index.js", expression + "\n");
-          NODE
+          HASH=$(sha256sum index.js | cut -d ' ' -f1)
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            m.main = 'index.js';
+            m.hash = '$HASH';
+            fs.writeFileSync('manifest.json', JSON.stringify(m, null, 2) + '\n');
+          "
 
       - name: Commit compiled plugin
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.js
-          git diff --cached --quiet || git commit -m "Build plugin expression"
+          git add index.js manifest.json
+          git diff --cached --quiet || git commit -m "Build SanneBridge plugin"
           git push
