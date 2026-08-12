@@ -30,7 +30,6 @@ jobs:
           esbuild src/index.ts \
             --bundle \
             --format=iife \
-            --global-name=SanneBridge \
             --platform=neutral \
             --loader:.ts=tsx \
             --external:@vendetta/metro \
