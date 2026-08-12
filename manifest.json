@@ -3,7 +3,8 @@
   "description": "Sanne-only bridge: choose one of the latest five Sanne MP3 clips and upload it to the current Discord conversation.",
   "authors": [
     {
-      "name": "Noba"
+      "name": "Noba",
+      "id": "1212852145888559177"
     }
   ],
   "main": "src/index.ts",
