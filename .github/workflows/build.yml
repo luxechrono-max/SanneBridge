@@ -22,30 +22,73 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install esbuild
-        run: npm install -g esbuild
+      - name: Install build tools
+        run: |
+          npm install rollup @rollup/plugin-commonjs @rollup/plugin-node-resolve rollup-plugin-esbuild
 
       - name: Build plugin
         run: |
-          esbuild src/index.ts \
-            --bundle \
-            --format=iife \
-            --platform=neutral \
-            --loader:.ts=tsx \
-            --external:@vendetta/* \
-            --outfile=index.js \
-            --global-name=SanneBridge
+          mkdir -p build
 
-      - name: Generate plugin hash
-        run: |
-          HASH=$(sha256sum index.js | cut -d ' ' -f1)
-          node -e "
-            const fs = require('fs');
-            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
-            m.main = 'index.js';
-            m.hash = '$HASH';
-            fs.writeFileSync('manifest.json', JSON.stringify(m, null, 2) + '\n');
-          "
+          cat > build/build.mjs <<'EOF'
+          import { readFile, writeFile } from "fs/promises";
+          import { createHash } from "crypto";
+          import { rollup } from "rollup";
+          import commonjs from "@rollup/plugin-commonjs";
+          import nodeResolve from "@rollup/plugin-node-resolve";
+          import esbuild from "rollup-plugin-esbuild";
+
+          const plugins = [
+            nodeResolve(),
+            commonjs(),
+            esbuild()
+          ];
+
+          const bundle = await rollup({
+            input: "./src/index.ts",
+            onwarn: () => {},
+            plugins,
+            external: (id) =>
+              id === "react" ||
+              id === "react-native" ||
+              id.startsWith("@vendetta/")
+          });
+
+          await bundle.write({
+            file: "./index.js",
+            format: "iife",
+            compact: true,
+            exports: "named",
+            globals: (id) => {
+              if (id.startsWith("@vendetta/"))
+                return id.substring(1).replace(/\//g, ".");
+              if (id === "react")
+                return "window.React";
+              if (id === "react-native")
+                return "window.ReactNative";
+              return id;
+            }
+          });
+
+          await bundle.close();
+
+          const js = await readFile("./index.js");
+          const hash = createHash("sha256").update(js).digest("hex");
+
+          const manifest = JSON.parse(
+            await readFile("./manifest.json", "utf8")
+          );
+
+          manifest.main = "index.js";
+          manifest.hash = hash;
+
+          await writeFile(
+            "./manifest.json",
+            JSON.stringify(manifest, null, 2) + "\n"
+          );
+          EOF
+
+          node build/build.mjs
 
       - name: Commit compiled plugin
         run: |
