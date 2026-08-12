@@ -30,16 +30,14 @@ var SanneBridge = (() => {
   });
   var import_common = __require("@vendetta/metro/common");
   var import_metro = __require("@vendetta/metro");
-  var import_components = __require("@vendetta/ui/components");
   var import_assets = __require("@vendetta/ui/assets");
   var import_common2 = __require("@vendetta/metro/common");
   var API = "https://sannewalid.aitnobajansen.workers.dev";
   var MAX_CLIPS = 5;
-  var { FormRow, FormText, FormIcon, FormDivider } = import_components.Forms;
   function getFileManager() {
     const fm = (0, import_metro.findByProps)("writeFile", "getConstants");
     if (!fm?.writeFile || !fm?.getConstants) {
-      throw new Error("Bunny FileManager not found");
+      throw new Error("Bunny/Kettu FileManager not found");
     }
     return fm;
   }
@@ -52,7 +50,7 @@ var SanneBridge = (() => {
   }
   function formatTime(value) {
     const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return value;
+    if (Number.isNaN(d.getTime())) return String(value);
     return d.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -66,12 +64,16 @@ var SanneBridge = (() => {
     });
     if (!r.ok) throw new Error(`Bridge HTTP ${r.status}`);
     const data = await r.json();
-    if (!Array.isArray(data?.clips)) throw new Error("Invalid bridge response");
+    if (!Array.isArray(data?.clips)) {
+      throw new Error("Invalid bridge response");
+    }
     return data.clips.filter((c) => c?.voice === "Sanne").slice(0, MAX_CLIPS);
   }
   async function downloadClip(clip) {
     const r = await fetch(clip.url);
-    if (!r.ok) throw new Error(`MP3 HTTP ${r.status}`);
+    if (!r.ok) {
+      throw new Error(`MP3 HTTP ${r.status}`);
+    }
     const buffer = await r.arrayBuffer();
     const bytes = new Uint8Array(buffer);
     let binary = "";
@@ -84,7 +86,12 @@ var SanneBridge = (() => {
     const base64 = btoa(binary);
     const fm = getFileManager();
     const filename = `sanne-${clip.id}.mp3`;
-    const path = await fm.writeFile("cache", filename, base64, "base64");
+    const path = await fm.writeFile(
+      "cache",
+      filename,
+      base64,
+      "base64"
+    );
     return {
       path,
       filename,
@@ -92,74 +99,41 @@ var SanneBridge = (() => {
     };
   }
   async function sendToDiscord(clip) {
-    (0, import_common2.showToast)("Preparing Sanne voice message\xE2\x80\xA6");
+    (0, import_common2.showToast)("Preparing Sanne voice message\u2026");
     const local = await downloadClip(clip);
     const uploader = getUploader();
-    const item = {
-      uri: local.path,
-      filename: local.filename,
-      mimeType: "audio/mpeg",
-      size: local.size
-    };
     await uploader.uploadLocalFiles({
-      items: [{
-        ...item,
-        item: { ...item }
-      }],
+      items: [
+        {
+          uri: local.path,
+          filename: local.filename,
+          mimeType: "audio/mpeg",
+          size: local.size,
+          item: {
+            uri: local.path,
+            filename: local.filename,
+            mimeType: "audio/mpeg",
+            size: local.size
+          }
+        }
+      ],
       flags: 0
     });
-    (0, import_common2.showToast)("Sanne clip added to Discord", (0, import_assets.getAssetIDByName)("Check"));
+    (0, import_common2.showToast)(
+      "Sanne clip added to Discord",
+      (0, import_assets.getAssetIDByName)("Check")
+    );
   }
-  function ClipRow({ clip }) {
-    const { View, Text, TouchableOpacity } = import_common.ReactNative;
-    const duration = typeof clip.duration === "number" && clip.duration > 0 ? `${Math.round(clip.duration)}s` : "MP3";
-    return /* @__PURE__ */ React.createElement(View, { style: {
-      marginHorizontal: 12,
-      marginBottom: 10,
-      padding: 12,
-      borderRadius: 10,
-      backgroundColor: "#15171a"
-    } }, /* @__PURE__ */ React.createElement(Text, { style: { color: "white", fontSize: 15, fontWeight: "700" } }, "Sanne \xC2\xB7 ", formatTime(clip.createdAt)), /* @__PURE__ */ React.createElement(Text, { style: { color: "#949ba4", marginTop: 3 } }, duration), /* @__PURE__ */ React.createElement(View, { style: { flexDirection: "row", marginTop: 10 } }, /* @__PURE__ */ React.createElement(
+  function SanneSettings() {
+    const {
+      ScrollView,
+      View,
+      Text,
       TouchableOpacity,
-      {
-        onPress: () => import_common.ReactNative.Linking.openURL(clip.url),
-        style: {
-          paddingVertical: 10,
-          paddingHorizontal: 14,
-          borderRadius: 8,
-          backgroundColor: "#2b2d31",
-          marginRight: 8
-        }
-      },
-      /* @__PURE__ */ React.createElement(Text, { style: { color: "white", fontWeight: "700" } }, "Preview")
-    ), /* @__PURE__ */ React.createElement(
-      TouchableOpacity,
-      {
-        onPress: async () => {
-          try {
-            await sendToDiscord(clip);
-          } catch (e) {
-            console.error("[SanneBridge]", e);
-            (0, import_common2.showToast)(
-              String(e?.message || e),
-              (0, import_assets.getAssetIDByName)("Small")
-            );
-          }
-        },
-        style: {
-          paddingVertical: 10,
-          paddingHorizontal: 14,
-          borderRadius: 8,
-          backgroundColor: "#5865f2"
-        }
-      },
-      /* @__PURE__ */ React.createElement(Text, { style: { color: "white", fontWeight: "700" } }, "SEND TO DISCORD")
-    )));
-  }
-  var index_default = () => {
-    const { ScrollView, View, Text, TouchableOpacity, ActivityIndicator } = import_common.ReactNative;
+      ActivityIndicator
+    } = import_common.ReactNative;
     const [clips, setClips] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
+    const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState("");
     const refresh = async () => {
       setLoading(true);
@@ -175,28 +149,159 @@ var SanneBridge = (() => {
     React.useEffect(() => {
       refresh();
     }, []);
-    return /* @__PURE__ */ React.createElement(ScrollView, null, /* @__PURE__ */ React.createElement(View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(Text, { style: {
-      color: "white",
-      fontSize: 22,
-      fontWeight: "800",
-      marginBottom: 4
-    } }, "SanneBridge"), /* @__PURE__ */ React.createElement(Text, { style: { color: "#b5bac1", marginBottom: 14 } }, "Latest 5 Sanne clips"), /* @__PURE__ */ React.createElement(
-      TouchableOpacity,
-      {
-        onPress: refresh,
-        style: {
-          padding: 12,
-          borderRadius: 8,
-          backgroundColor: "#2b2d31",
-          marginBottom: 12
-        }
-      },
-      /* @__PURE__ */ React.createElement(Text, { style: {
-        color: "white",
-        textAlign: "center",
-        fontWeight: "700"
-      } }, "REFRESH")
-    ), loading && /* @__PURE__ */ React.createElement(ActivityIndicator, null), !!error && /* @__PURE__ */ React.createElement(Text, { style: { color: "#f23f42", margin: 12 } }, error), !loading && !error && clips.length === 0 && /* @__PURE__ */ React.createElement(Text, { style: { color: "#b5bac1", margin: 12 } }, "No Sanne clips available."), clips.map((clip) => /* @__PURE__ */ React.createElement(ClipRow, { key: clip.id, clip }))));
+    return React.createElement(
+      ScrollView,
+      null,
+      React.createElement(
+        View,
+        { style: { padding: 16 } },
+        React.createElement(
+          Text,
+          {
+            style: {
+              color: "white",
+              fontSize: 22,
+              fontWeight: "800",
+              marginBottom: 4
+            }
+          },
+          "SanneBridge"
+        ),
+        React.createElement(
+          Text,
+          {
+            style: {
+              color: "#b5bac1",
+              marginBottom: 14
+            }
+          },
+          "Latest 5 Sanne clips"
+        ),
+        React.createElement(
+          TouchableOpacity,
+          {
+            onPress: refresh,
+            style: {
+              padding: 12,
+              borderRadius: 8,
+              backgroundColor: "#2b2d31",
+              marginBottom: 12
+            }
+          },
+          React.createElement(
+            Text,
+            {
+              style: {
+                color: "white",
+                textAlign: "center",
+                fontWeight: "700"
+              }
+            },
+            "REFRESH"
+          )
+        ),
+        loading ? React.createElement(ActivityIndicator, null) : null,
+        error ? React.createElement(
+          Text,
+          {
+            style: {
+              color: "#f23f42",
+              margin: 12
+            }
+          },
+          error
+        ) : null,
+        !loading && !error && clips.length === 0 ? React.createElement(
+          Text,
+          {
+            style: {
+              color: "#b5bac1",
+              margin: 12
+            }
+          },
+          "No Sanne clips available."
+        ) : null,
+        ...clips.map(
+          (clip) => React.createElement(
+            View,
+            {
+              key: String(clip.id),
+              style: {
+                marginHorizontal: 0,
+                marginBottom: 10,
+                padding: 12,
+                borderRadius: 10,
+                backgroundColor: "#15171a"
+              }
+            },
+            React.createElement(
+              Text,
+              {
+                style: {
+                  color: "white",
+                  fontSize: 15,
+                  fontWeight: "700"
+                }
+              },
+              `Sanne \xB7 ${formatTime(clip.createdAt)}`
+            ),
+            React.createElement(
+              Text,
+              {
+                style: {
+                  color: "#949ba4",
+                  marginTop: 3
+                }
+              },
+              typeof clip.duration === "number" ? `${Math.round(clip.duration)}s` : "MP3"
+            ),
+            React.createElement(
+              TouchableOpacity,
+              {
+                onPress: async () => {
+                  try {
+                    await sendToDiscord(clip);
+                  } catch (e) {
+                    (0, import_common2.showToast)(
+                      String(e?.message || e),
+                      (0, import_assets.getAssetIDByName)("Small")
+                    );
+                  }
+                },
+                style: {
+                  paddingVertical: 10,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: "#5865f2",
+                  marginTop: 10
+                }
+              },
+              React.createElement(
+                Text,
+                {
+                  style: {
+                    color: "white",
+                    fontWeight: "700",
+                    textAlign: "center"
+                  }
+                },
+                "SEND TO DISCORD"
+              )
+            )
+          )
+        )
+      )
+    );
+  }
+  var React = (0, import_metro.findByProps)("createElement");
+  var index_default = {
+    onLoad() {
+      console.log("[SanneBridge] loaded");
+    },
+    onUnload() {
+      console.log("[SanneBridge] unloaded");
+    },
+    settings: SanneSettings
   };
   return __toCommonJS(index_exports);
 })();
