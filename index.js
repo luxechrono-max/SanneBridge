@@ -20,15 +20,14 @@ var SanneBridge = (() => {
   // src/index.ts
   var index_exports = {};
   __export(index_exports, {
-    default: () => index_default
+    onLoad: () => onLoad,
+    onUnload: () => onUnload
   });
-  var index_default = {
-    onLoad() {
-      console.log("[SanneBridge] ENABLED");
-    },
-    onUnload() {
-      console.log("[SanneBridge] DISABLED");
-    }
+  var onLoad = () => {
+    console.log("[SanneBridge] ENABLED");
+  };
+  var onUnload = () => {
+    console.log("[SanneBridge] DISABLED");
   };
   return __toCommonJS(index_exports);
 })();
