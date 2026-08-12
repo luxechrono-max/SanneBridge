@@ -1,12 +1,33 @@
 (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
     get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
   }) : x)(function(x) {
     if (typeof require !== "undefined") return require.apply(this, arguments);
     throw Error('Dynamic require of "' + x + '" is not supported');
   });
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
   // src/index.ts
+  var index_exports = {};
+  __export(index_exports, {
+    default: () => index_default
+  });
   var import_common = __require("@vendetta/metro/common");
   var import_metro = __require("@vendetta/metro");
   var import_components = __require("@vendetta/ui/components");
@@ -177,4 +198,5 @@
       } }, "REFRESH")
     ), loading && /* @__PURE__ */ React.createElement(ActivityIndicator, null), !!error && /* @__PURE__ */ React.createElement(Text, { style: { color: "#f23f42", margin: 12 } }, error), !loading && !error && clips.length === 0 && /* @__PURE__ */ React.createElement(Text, { style: { color: "#b5bac1", margin: 12 } }, "No Sanne clips available."), clips.map((clip) => /* @__PURE__ */ React.createElement(ClipRow, { key: clip.id, clip }))));
   };
+  return __toCommonJS(index_exports);
 })();
