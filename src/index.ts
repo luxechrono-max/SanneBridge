@@ -1,9 +1,7 @@
-export default {
-  onLoad() {
-    console.log("[SanneBridge] ENABLED");
-  },
+export const onLoad = () => {
+  console.log("[SanneBridge] ENABLED");
+};
 
-  onUnload() {
-    console.log("[SanneBridge] DISABLED");
-  },
+export const onUnload = () => {
+  console.log("[SanneBridge] DISABLED");
 };
