@@ -199,4 +199,4 @@
     ), loading && /* @__PURE__ */ React.createElement(ActivityIndicator, null), !!error && /* @__PURE__ */ React.createElement(Text, { style: { color: "#f23f42", margin: 12 } }, error), !loading && !error && clips.length === 0 && /* @__PURE__ */ React.createElement(Text, { style: { color: "#b5bac1", margin: 12 } }, "No Sanne clips available."), clips.map((clip) => /* @__PURE__ */ React.createElement(ClipRow, { key: clip.id, clip }))));
   };
   return __toCommonJS(index_exports);
-})();
+})()
