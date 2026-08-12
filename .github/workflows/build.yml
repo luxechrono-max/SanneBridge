@@ -30,21 +30,30 @@ jobs:
           esbuild src/index.ts \
             --bundle \
             --format=iife \
-            --global-name=SanneBridge \
             --platform=neutral \
             --loader:.ts=tsx \
-            --external:@vendetta/metro \
-            --external:@vendetta/metro/* \
-            --external:@vendetta/ui \
-            --external:@vendetta/ui/* \
-            --outfile=index.js
+            --external:@vendetta/* \
+            --outfile=index.js \
+            --global-name=SanneBridge
 
-          sed -i '1s/^var SanneBridge = //' index.js
+      - name: Convert bundle to plugin expression
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const js = fs.readFileSync("index.js", "utf8");
+          const start = js.indexOf("(() => {");
+          if (start === -1) throw new Error("IIFE wrapper not found");
+          const end = js.lastIndexOf("})();");
+          if (end === -1) throw new Error("IIFE ending not found");
+
+          const expression = js.slice(start, end + 4);
+          fs.writeFileSync("index.js", expression + "\n");
+          NODE
 
       - name: Commit compiled plugin
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.js
-          git diff --cached --quiet || git commit -m "Build plugin JavaScript"
+          git diff --cached --quiet || git commit -m "Build plugin expression"
           git push
