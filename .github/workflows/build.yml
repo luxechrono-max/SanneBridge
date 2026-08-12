@@ -30,6 +30,7 @@ jobs:
           esbuild src/index.ts \
             --bundle \
             --format=iife \
+            --global-name=SanneBridge \
             --platform=neutral \
             --loader:.ts=tsx \
             --external:@vendetta/metro \
@@ -37,6 +38,8 @@ jobs:
             --external:@vendetta/ui \
             --external:@vendetta/ui/* \
             --outfile=index.js
+
+          sed -i '1s/^var SanneBridge = //' index.js
 
       - name: Commit compiled plugin
         run: |
