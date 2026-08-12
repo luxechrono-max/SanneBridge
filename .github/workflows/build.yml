@@ -23,7 +23,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install -g typescript esbuild
+        run: npm install -g esbuild
 
       - name: Build plugin
         run: |
@@ -32,7 +32,10 @@ jobs:
             --format=esm \
             --platform=neutral \
             --loader:.ts=tsx \
-            --external:@vendetta/* \
+            --external:@vendetta/metro \
+            --external:@vendetta/metro/* \
+            --external:@vendetta/ui \
+            --external:@vendetta/ui/* \
             --outfile=index.js
 
       - name: Commit compiled plugin
