@@ -1,15 +1,26 @@
 import { ReactNative } from "@vendetta/metro/common";
 
 export default () => {
-    const send = () => {
-        const fn = (globalThis as any).__SanneGetLatest;
+    const fetchLatest = async () => {
+        try {
+            const fn = (globalThis as any).__SanneGetLatest;
 
-        ReactNative.Alert.alert(
-            "SanneBridge",
-            fn
-                ? "Sanne API is loaded."
-                : "Sanne API is NOT loaded."
-        );
+            if (!fn) {
+                throw new Error("Sanne API is not loaded.");
+            }
+
+            const clip = await fn();
+
+            ReactNative.Alert.alert(
+                "Latest Sanne",
+                `Timestamp:\n${clip.createdAt}\n\nClip ID:\n${clip.id}\n\nURL:\n${clip.url}`
+            );
+        } catch (e: any) {
+            ReactNative.Alert.alert(
+                "SanneBridge Error",
+                String(e?.message || e)
+            );
+        }
     };
 
     return (
@@ -27,7 +38,7 @@ export default () => {
                 </ReactNative.Text>
 
                 <ReactNative.TouchableOpacity
-                    onPress={send}
+                    onPress={fetchLatest}
                     style={{
                         padding: 16,
                         borderRadius: 8,
@@ -41,7 +52,7 @@ export default () => {
                             fontWeight: "700",
                         }}
                     >
-                        TEST SANNE API
+                        FETCH LATEST SANNE
                     </ReactNative.Text>
                 </ReactNative.TouchableOpacity>
             </ReactNative.View>
