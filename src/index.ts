@@ -318,4 +318,4 @@ export const onUnload = () => {
     console.log("[SanneBridge] unloaded");
 };
 
-// export const settings = SanneSettings;
+export const settings = SanneSettings;
