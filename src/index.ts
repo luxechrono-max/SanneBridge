@@ -2,10 +2,10 @@ import { showToast } from "@vendetta/metro/common";
 import { findByProps } from "@vendetta/metro";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 
-const API = "https://sannewalid.aitnobajansen.workers.dev";
-const MAX_CLIPS = 5;
+export const API = "https://sannewalid.aitnobajansen.workers.dev";
+export const MAX_CLIPS = 5;
 
-async function getClips() {
+export async function getSanneClips() {
     const response = await fetch(`${API}/bridge/sanne`, {
         cache: "no-store",
         headers: {
@@ -28,7 +28,9 @@ async function getClips() {
         .slice(0, MAX_CLIPS);
 }
 
-async function downloadClip(clip: any) {
+export async function sendSanne(clip: any) {
+    showToast("Preparing Sanne…");
+
     const response = await fetch(clip.url);
 
     if (!response.ok) {
@@ -70,18 +72,6 @@ async function downloadClip(clip: any) {
         "base64"
     );
 
-    return {
-        path,
-        filename,
-        size: bytes.length,
-    };
-}
-
-async function sendSanne(clip: any) {
-    showToast("Preparing Sanne…");
-
-    const local = await downloadClip(clip);
-
     const uploader = findByProps("uploadLocalFiles");
 
     if (!uploader?.uploadLocalFiles) {
@@ -93,10 +83,10 @@ async function sendSanne(clip: any) {
     await uploader.uploadLocalFiles({
         items: [
             {
-                uri: local.path,
-                filename: local.filename,
+                uri: path,
+                filename,
                 mimeType: "audio/mpeg",
-                size: local.size,
+                size: bytes.length,
             },
         ],
         flags: 0,
