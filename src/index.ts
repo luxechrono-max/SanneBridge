@@ -1,6 +1,9 @@
-import { findByProps } from "@vendetta/metro";
+import { commands } from "@vendetta/metro/common";
+import { registerCommand } from "@vendetta/commands";
 
 const API = "https://sannewalid.aitnobajansen.workers.dev";
+
+let unregister: (() => void) | null = null;
 
 async function sendLatestSanne(channelId: string) {
     const response = await fetch(`${API}/bridge/sanne`, {
@@ -56,13 +59,11 @@ async function sendLatestSanne(channelId: string) {
 
     const base64 = btoa(binary);
 
-    const files = findByProps(
-        "writeFile",
-        "getConstants"
-    );
+    const files = (await import("@vendetta/metro"))
+        .findByProps("writeFile", "getConstants");
 
     if (!files?.writeFile) {
-        throw new Error("FileManager unavailable");
+        throw new Error("Kettu FileManager unavailable");
     }
 
     const filename = `sanne-${latest.id}.mp3`;
@@ -74,36 +75,43 @@ async function sendLatestSanne(channelId: string) {
         "base64"
     );
 
-    const uploader = findByProps(
-        "uploadLocalFiles"
-    );
+    const uploader = (await import("@vendetta/metro"))
+        .findByProps("uploadLocalFiles");
 
     if (!uploader?.uploadLocalFiles) {
-        throw new Error(
-            "uploadLocalFiles unavailable"
-        );
+        throw new Error("Discord uploader unavailable");
     }
 
     await uploader.uploadLocalFiles({
         channelId,
-        items: [
-            {
-                uri,
-                filename,
-                mimeType: "audio/mpeg",
-                size: bytes.length,
-            },
-        ],
+        items: [{
+            uri,
+            filename,
+            mimeType: "audio/mpeg",
+            size: bytes.length,
+        }],
         flags: 0,
     });
 }
 
 export const onLoad = () => {
-    console.log("[SanneBridge] loaded");
+    unregister = registerCommand({
+        name: "sanne",
+        description: "Send the latest Sanne voice message",
+        options: [],
+        execute: async (args: any, ctx: any) => {
+            await sendLatestSanne(ctx.channel.id);
+
+            return {
+                content: "Latest Sanne sent.",
+            };
+        },
+    });
 };
 
 export const onUnload = () => {
-    console.log("[SanneBridge] unloaded");
+    unregister?.();
+    unregister = null;
 };
 
 export { default as settings } from "./settings";
