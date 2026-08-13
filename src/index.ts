@@ -1,3 +1,5 @@
+import { getLatestSanne } from "./sanneApi";
+
 export const onLoad = () => {
     console.log("[SanneBridge] loaded");
 };
