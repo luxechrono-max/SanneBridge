@@ -1,25 +1,32 @@
 import { findByProps } from "@vendetta/metro";
 import { after } from "@vendetta/patcher";
 
-let unpatch: (() => void) | null = null;
+let stop: (() => void) | null = null;
 
 export function startChannelMenu() {
-    const menu = findByProps("openContextMenu");
+    const contextMenu = findByProps(
+        "openContextMenu",
+        "closeContextMenu"
+    );
 
-    if (!menu?.openContextMenu) {
-        throw new Error("Context menu module not found");
+    if (!contextMenu?.openContextMenu) {
+        throw new Error("Discord context menu unavailable");
     }
 
-    unpatch = after(
+    stop = after(
         "openContextMenu",
-        menu,
+        contextMenu,
         (_args: any[], result: any) => {
+            console.log(
+                "[SanneBridge] context menu opened"
+            );
+
             return result;
         }
     );
 
     return () => {
-        unpatch?.();
-        unpatch = null;
+        stop?.();
+        stop = null;
     };
 }
