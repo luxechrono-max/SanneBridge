@@ -1,19 +1,25 @@
-(function(exports,metro,patcher,common){'use strict';let unpatch = null;
+(function(exports,metro,patcher,common){'use strict';let stop = null;
 function startChannelMenu() {
-  const menu = metro.findByProps("openContextMenu");
-  if (!menu?.openContextMenu) {
-    throw new Error("Context menu module not found");
-  }
-  unpatch = patcher.after(
+  const contextMenu = metro.findByProps(
     "openContextMenu",
-    menu,
+    "closeContextMenu"
+  );
+  if (!contextMenu?.openContextMenu) {
+    throw new Error("Discord context menu unavailable");
+  }
+  stop = patcher.after(
+    "openContextMenu",
+    contextMenu,
     (_args, result) => {
+      console.log(
+        "[SanneBridge] context menu opened"
+      );
       return result;
     }
   );
   return () => {
-    unpatch?.();
-    unpatch = null;
+    stop?.();
+    stop = null;
   };
 }var settings = () => {
   const test = () => {
