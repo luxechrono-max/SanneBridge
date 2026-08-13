@@ -1,8 +1,98 @@
-(function(n,t){"use strict";const s="https://sannewalid.aitnobajansen.workers.dev";async function l(){const e=await fetch(`${s}/bridge/sanne`,{cache:"no-store",headers:{Accept:"application/json"}});if(!e.ok)throw new Error(`Bridge HTTP ${e.status}`);const a=await e.json(),i=Array.isArray(a?.clips)?a.clips.filter(r=>r?.voice==="Sanne"):[];if(!i.length)throw new Error("No Sanne clips found");return i.reduce((r,c)=>new Date(c.createdAt).getTime()>new Date(r.createdAt).getTime()?c:r)}var o=()=>React.createElement(t.ReactNative.ScrollView,null,React.createElement(t.ReactNative.View,{style:{padding:16}},React.createElement(t.ReactNative.Text,{style:{color:"white",fontSize:22,fontWeight:"800",marginBottom:20}},"SanneBridge"),React.createElement(t.ReactNative.TouchableOpacity,{onPress:async()=>{try{const e=globalThis.__SanneGetLatest;if(!e)throw new Error("SanneBridge API unavailable");const a=await e();t.ReactNative.Alert.alert("Latest Sanne",`Timestamp:
-${a.createdAt}
+(function(exports,common){'use strict';const API = "https://sannewalid.aitnobajansen.workers.dev";
+async function getLatestSanne() {
+  const response = await fetch(
+    `${API}/bridge/sanne`,
+    {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json"
+      }
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Bridge HTTP ${response.status}`
+    );
+  }
+  const data = await response.json();
+  const clips = Array.isArray(data?.clips) ? data.clips.filter(
+    (clip) => clip?.voice === "Sanne"
+  ) : [];
+  if (!clips.length) {
+    throw new Error(
+      "No Sanne clips found"
+    );
+  }
+  return clips.reduce(
+    (latest, clip) => new Date(
+      clip.createdAt
+    ).getTime() > new Date(
+      latest.createdAt
+    ).getTime() ? clip : latest
+  );
+}var settings = () => {
+  return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
+    common.ReactNative.Text,
+    {
+      style: {
+        color: "white",
+        fontSize: 22,
+        fontWeight: "800",
+        marginBottom: 20
+      }
+    },
+    "SanneBridge"
+  ), /* @__PURE__ */ React.createElement(
+    common.ReactNative.TouchableOpacity,
+    {
+      onPress: async () => {
+        try {
+          const getLatest = globalThis.__SanneGetLatest;
+          if (!getLatest) {
+            throw new Error(
+              "SanneBridge API unavailable"
+            );
+          }
+          const clip = await getLatest();
+          common.ReactNative.Alert.alert(
+            "Latest Sanne",
+            `Timestamp:
+${clip.createdAt}
 
 Clip ID:
-${a.id}
+${clip.id}
 
 URL:
-${a.url}`)}catch(e){t.ReactNative.Alert.alert("SanneBridge Error",String(e?.message||e))}},style:{padding:16,borderRadius:8,backgroundColor:"#5865f2"}},React.createElement(t.ReactNative.Text,{style:{color:"white",textAlign:"center",fontWeight:"700"}},"FETCH LATEST SANNE"))));const d=()=>{globalThis.__SanneGetLatest=l},g=()=>{delete globalThis.__SanneGetLatest};return n.onLoad=d,n.onUnload=g,n.settings=o,n})({},vendetta.metro.common);
+${clip.url}`
+          );
+        } catch (e) {
+          common.ReactNative.Alert.alert(
+            "SanneBridge Error",
+            String(e?.message || e)
+          );
+        }
+      },
+      style: {
+        padding: 16,
+        borderRadius: 8,
+        backgroundColor: "#5865f2"
+      }
+    },
+    /* @__PURE__ */ React.createElement(
+      common.ReactNative.Text,
+      {
+        style: {
+          color: "white",
+          textAlign: "center",
+          fontWeight: "700"
+        }
+      },
+      "FETCH LATEST SANNE"
+    )
+  )));
+};const onLoad = () => {
+  globalThis.__SanneGetLatest = getLatestSanne;
+};
+const onUnload = () => {
+  delete globalThis.__SanneGetLatest;
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro.common);
