@@ -1,17 +1,20 @@
-(function(exports,metro,patcher,common){'use strict';function startChannelMenu() {
-  const menu = metro.findByProps("openContextMenu", "closeContextMenu");
+(function(exports,metro,patcher,common){'use strict';let unpatch = null;
+function startChannelMenu() {
+  const menu = metro.findByProps("openContextMenu");
   if (!menu?.openContextMenu) {
-    throw new Error("Discord context menu module not found");
+    throw new Error("Context menu module not found");
   }
-  return patcher.before("openContextMenu", menu, (args) => {
-    const props = args?.[1];
-    if (!props?.channel?.id) return args;
-    console.log(
-      "[SanneBridge] channel:",
-      props.channel.id
-    );
-    return args;
-  });
+  unpatch = patcher.after(
+    "openContextMenu",
+    menu,
+    (_args, result) => {
+      return result;
+    }
+  );
+  return () => {
+    unpatch?.();
+    unpatch = null;
+  };
 }var settings = () => {
   const test = () => {
     const send = globalThis.__SanneSend;
