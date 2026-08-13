@@ -1,46 +1,36 @@
-import { findAllExports } from "@metro/finders";
-import { createSimpleFilter } from "@metro/factories";
-import { ReactNative } from "@metro/common";
+import { findByProps } from "@vendetta/metro";
+import { after } from "@vendetta/patcher";
+import { ReactNative } from "@vendetta/metro/common";
 
-let done = false;
+let unpatch: (() => void) | null = null;
 
 export function startChannelMenu() {
-    if (done) return () => {};
-    done = true;
+    const actionSheet = findByProps(
+        "openLazy",
+        "hideActionSheet"
+    );
 
-    const filter = createSimpleFilter(
-        (m: any) => {
-            const name =
-                m?.displayName ||
-                m?.name ||
-                m?.type?.displayName ||
-                m?.type?.name;
+    if (!actionSheet?.openLazy) {
+        throw new Error("Kettu ActionSheet not found");
+    }
 
-            return (
-                typeof name === "string" &&
-                /attachment|upload|messageinput|composer|file/i.test(name)
+    unpatch = after(
+        "openLazy",
+        actionSheet,
+        (args: any[], result: any) => {
+            const key = args?.[1];
+
+            ReactNative.Alert.alert(
+                "SanneBridge",
+                `ActionSheet opened:\n${String(key)}`
             );
-        },
-        "sanne-attachment-components"
+
+            return result;
+        }
     );
 
-    const found = findAllExports(filter);
-
-    const names = found
-        .map((m: any) =>
-            m?.displayName ||
-            m?.name ||
-            m?.type?.displayName ||
-            m?.type?.name
-        )
-        .filter(Boolean);
-
-    ReactNative.Alert.alert(
-        "SanneBridge",
-        names.length
-            ? names.slice(0, 30).join("\n")
-            : "NO ATTACHMENT COMPONENT FOUND"
-    );
-
-    return () => {};
+    return () => {
+        unpatch?.();
+        unpatch = null;
+    };
 }
