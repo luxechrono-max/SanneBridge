@@ -1,36 +1,41 @@
-import { findByProps } from "@vendetta/metro";
-import { after } from "@vendetta/patcher";
-import { ReactNative } from "@vendetta/metro/common";
+import { findByPropsAll } from "@metro/wrappers";
+import { ReactNative } from "@metro/common";
 
-let unpatch: (() => void) | null = null;
+let ran = false;
 
 export function startChannelMenu() {
-    const actionSheet = findByProps(
-        "openLazy",
-        "hideActionSheet"
-    );
+    if (ran) return () => {};
+    ran = true;
 
-    if (!actionSheet?.openLazy) {
-        throw new Error("Kettu ActionSheet not found");
+    const candidates = [
+        "sendMessage",
+        "sendMessageWithAttachments",
+        "uploadFile",
+        "uploadFiles",
+        "pickFile",
+        "pickFiles",
+        "openAttachmentPicker",
+        "toggleAttachmentPicker",
+    ];
+
+    const results: string[] = [];
+
+    for (const prop of candidates) {
+        try {
+            const modules = findByPropsAll(prop);
+
+            if (modules?.length) {
+                results.push(`${prop}: ${modules.length}`);
+            }
+        } catch {}
     }
 
-    unpatch = after(
-        "openLazy",
-        actionSheet,
-        (args: any[], result: any) => {
-            const key = args?.[1];
-
-            ReactNative.Alert.alert(
-                "SanneBridge",
-                `ActionSheet opened:\n${String(key)}`
-            );
-
-            return result;
-        }
+    ReactNative.Alert.alert(
+        "SanneBridge",
+        results.length
+            ? results.join("\n")
+            : "No attachment/upload modules found"
     );
 
-    return () => {
-        unpatch?.();
-        unpatch = null;
-    };
+    return () => {};
 }
