@@ -22,14 +22,14 @@ export default () => {
 
             <ReactNative.TouchableOpacity
                 onPress={() =>
-                    console.log(
-                        "[SanneBridge] BUTTON PRESSED"
+                    ReactNative.Alert.alert(
+                        "SanneBridge",
+                        "Button callback works."
                     )
                 }
                 style={{
+                    margin: 12,
                     padding: 16,
-                    marginHorizontal: 12,
-                    marginVertical: 8,
                     borderRadius: 8,
                     backgroundColor: "#5865f2",
                 }}
