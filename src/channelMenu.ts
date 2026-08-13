@@ -21,24 +21,19 @@ export function startChannelMenu() {
         method,
         picker,
         (args: any[], result: any) => {
-            const send = (globalThis as any).__SanneSend;
+            const a = args?.[0];
+            const b = args?.[1];
 
-            if (!send) return result;
+            const channelId =
+                a?.channelId ??
+                a?.channel?.id ??
+                b?.channelId ??
+                b?.channel?.id;
 
-            try {
-                const channelId =
-                    args?.[0]?.channelId ??
-                    args?.[0]?.channel?.id ??
-                    args?.[1]?.channelId ??
-                    args?.[1]?.channel?.id;
-
-                if (!channelId) return result;
-
-                console.log(
-                    "[SanneBridge] picker channel:",
-                    channelId
-                );
-            } catch {}
+            console.log(
+                "[SanneBridge] picker channel:",
+                channelId
+            );
 
             return result;
         }
