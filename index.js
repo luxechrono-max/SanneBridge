@@ -1,4 +1,11 @@
 (function(exports,metro,common){'use strict';var settings = () => {
+  const test = () => {
+    const send = globalThis.__SanneSend;
+    common.ReactNative.Alert.alert(
+      "SanneBridge",
+      send ? "Sanne sender is loaded." : "Sanne sender is NOT loaded."
+    );
+  };
   return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
     common.ReactNative.Text,
     {
@@ -13,12 +20,7 @@
   ), /* @__PURE__ */ React.createElement(
     common.ReactNative.TouchableOpacity,
     {
-      onPress: () => {
-        common.ReactNative.Alert.alert(
-          "SanneBridge",
-          "Button callback works."
-        );
-      },
+      onPress: test,
       style: {
         padding: 16,
         borderRadius: 8,
@@ -34,7 +36,7 @@
           fontWeight: "700"
         }
       },
-      "TEST SANNE BUTTON"
+      "TEST SANNE SENDER"
     )
   )));
 };const API = "https://sannewalid.aitnobajansen.workers.dev";
