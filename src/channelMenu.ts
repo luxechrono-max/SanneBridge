@@ -1,50 +1,38 @@
 import { findByProps } from "@vendetta/metro";
 import { after } from "@vendetta/patcher";
 
-let stop: (() => void) | null = null;
+let unpatch: (() => void) | null = null;
 
 export function startChannelMenu() {
-    const contextMenu = findByProps(
-        "openContextMenu",
-        "closeContextMenu"
+    const composer = findByProps(
+        "openAttachmentPicker",
+        "toggleAttachmentPicker"
     );
 
-    if (!contextMenu?.openContextMenu) {
-        throw new Error("Discord context menu unavailable");
+    if (!composer) {
+        throw new Error("Discord composer module not found");
     }
 
-    stop = after(
-        "openContextMenu",
-        contextMenu,
-        (_args: any[], result: any) => {
-            try {
-                const children =
-                    result?.props?.children;
+    const method =
+        composer.openAttachmentPicker
+            ? "openAttachmentPicker"
+            : "toggleAttachmentPicker";
 
-                if (Array.isArray(children)) {
-                    children.push({
-                        type: "button",
-                        label: "Send Latest Sanne",
-                        action: () => {
-                            console.log(
-                                "[SanneBridge] Send Latest Sanne"
-                            );
-                        },
-                    });
-                }
-            } catch (e) {
-                console.log(
-                    "[SanneBridge] menu patch error",
-                    e
-                );
-            }
+    unpatch = after(
+        method,
+        composer,
+        (args: any[], result: any) => {
+            console.log(
+                "[SanneBridge] ATTACHMENT PICKER",
+                args
+            );
 
             return result;
         }
     );
 
     return () => {
-        stop?.();
-        stop = null;
+        unpatch?.();
+        unpatch = null;
     };
 }
