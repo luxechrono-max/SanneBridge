@@ -4,29 +4,24 @@ import { after } from "@vendetta/patcher";
 let unpatch: (() => void) | null = null;
 
 export function startChannelMenu() {
-    const composer = findByProps(
+    const picker = findByProps(
         "openAttachmentPicker",
         "toggleAttachmentPicker"
     );
 
-    if (!composer) {
-        throw new Error("Discord composer module not found");
+    if (!picker) {
+        throw new Error("Attachment picker module not found");
     }
 
-    const method =
-        composer.openAttachmentPicker
-            ? "openAttachmentPicker"
-            : "toggleAttachmentPicker";
+    const method = picker.openAttachmentPicker
+        ? "openAttachmentPicker"
+        : "toggleAttachmentPicker";
 
     unpatch = after(
         method,
-        composer,
-        (args: any[], result: any) => {
-            console.log(
-                "[SanneBridge] ATTACHMENT PICKER",
-                args
-            );
-
+        picker,
+        (_args: any[], result: any) => {
+            console.log("[SanneBridge] attachment picker opened");
             return result;
         }
     );
