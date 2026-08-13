@@ -1,7 +1,7 @@
 import { ReactNative } from "@vendetta/metro/common";
-import { NavigationNative } from "@vendetta/metro/common";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
+import { NavigationNative } from "@vendetta/metro/common";
 import SannePage from "./sannePage";
 
 const {
@@ -30,7 +30,6 @@ export default () => {
 
             <FormRow
                 label="Open SanneBridge"
-                trailing={FormRow.Arrow}
                 onPress={() =>
                     navigation.push(
                         "VendettaCustomPage",
