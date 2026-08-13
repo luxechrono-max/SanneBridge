@@ -1,36 +1,4 @@
-(function(exports,common){'use strict';const API = "https://sannewalid.aitnobajansen.workers.dev";
-async function getLatestSanne() {
-  const response = await fetch(
-    `${API}/bridge/sanne`,
-    {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json"
-      }
-    }
-  );
-  if (!response.ok) {
-    throw new Error(
-      `Bridge HTTP ${response.status}`
-    );
-  }
-  const data = await response.json();
-  const clips = Array.isArray(data?.clips) ? data.clips.filter(
-    (clip) => clip?.voice === "Sanne"
-  ) : [];
-  if (!clips.length) {
-    throw new Error(
-      "No Sanne clips found"
-    );
-  }
-  return clips.reduce(
-    (latest, clip) => new Date(
-      clip.createdAt
-    ).getTime() > new Date(
-      latest.createdAt
-    ).getTime() ? clip : latest
-  );
-}var settings = () => {
+(function(exports,common){'use strict';var settings = () => {
   return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
     common.ReactNative.Text,
     {
@@ -91,8 +59,8 @@ ${clip.url}`
     )
   )));
 };const onLoad = () => {
-  globalThis.__SanneGetLatest = getLatestSanne;
+  console.log("[SanneBridge] loaded");
 };
 const onUnload = () => {
-  delete globalThis.__SanneGetLatest;
+  console.log("[SanneBridge] unloaded");
 };exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro.common);
