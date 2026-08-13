@@ -1,11 +1,9 @@
-import { getLatestSanne } from "./sanneApi";
-
 export const onLoad = () => {
-    (globalThis as any).__SanneGetLatest = getLatestSanne;
+    console.log("[SanneBridge] loaded");
 };
 
 export const onUnload = () => {
-    delete (globalThis as any).__SanneGetLatest;
+    console.log("[SanneBridge] unloaded");
 };
 
 export { default as settings } from "./settings";
