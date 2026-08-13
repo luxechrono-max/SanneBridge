@@ -1,1 +1,9 @@
-(function(a,r,s,l,h){"use strict";const{FormDivider:m,FormIcon:p,FormRow:c}=h.Forms;var y=()=>React.createElement(r.ReactNative.ScrollView,null,React.createElement(c,{label:"SanneBridge",leading:React.createElement(p,{source:l.getAssetIDByName("voice_bar_mute_off")})}),React.createElement(m,null),React.createElement(c,{label:"SanneBridge is enabled"}));const S="https://sannewalid.aitnobajansen.workers.dev",b=5;async function v(){const e=await fetch(`${S}/bridge/sanne`,{cache:"no-store",headers:{Accept:"application/json"}});if(!e.ok)throw new Error(`Bridge HTTP ${e.status}`);const n=await e.json();if(!Array.isArray(n?.clips))throw new Error("Invalid bridge response");return n.clips.filter(i=>i?.voice==="Sanne").slice(0,b)}async function B(e){r.showToast("Preparing Sanne\u2026");const n=await fetch(e.url);if(!n.ok)throw new Error(`MP3 HTTP ${n.status}`);const i=await n.arrayBuffer(),t=new Uint8Array(i);let d="";const g=32768;for(let o=0;o<t.length;o+=g)d+=String.fromCharCode(...t.subarray(o,Math.min(o+g,t.length)));const T=btoa(d),u=s.findByProps("writeFile","getConstants");if(!u?.writeFile)throw new Error("Kettu FileManager not found");const w=`sanne-${e.id}.mp3`,R=await u.writeFile("cache",w,T,"base64"),f=s.findByProps("uploadLocalFiles");if(!f?.uploadLocalFiles)throw new Error("Discord uploadLocalFiles not found");await f.uploadLocalFiles({items:[{uri:R,filename:w,mimeType:"audio/mpeg",size:t.length}],flags:0}),r.showToast("Sanne voice message sent",l.getAssetIDByName("Check"))}const F=()=>{globalThis.__SanneBridge={getSanneClips:v,sendSanne:B},console.log("[SanneBridge] loaded")},E=()=>{delete globalThis.__SanneBridge,console.log("[SanneBridge] unloaded")};return a.onLoad=F,a.onUnload=E,a.settings=y,a})({},vendetta.metro.common,vendetta.metro,vendetta.ui.assets,vendetta.ui.components);
+export const onLoad = () => {
+    console.log("[SanneBridge] loaded");
+};
+
+export const onUnload = () => {
+    console.log("[SanneBridge] unloaded");
+};
+
+export { default as settings } from "./settings";
