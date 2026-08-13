@@ -1,7 +1,6 @@
 import { ReactNative } from "@vendetta/metro/common";
 import { getAssetIDByName } from "@vendetta/ui/assets";
-
-const API = "https://sannewalid.aitnobajansen.workers.dev";
+import { getLatestSanne } from "./sanneApi";
 
 export default () => {
     return (
@@ -21,61 +20,12 @@ export default () => {
                 <ReactNative.TouchableOpacity
                     onPress={async () => {
                         try {
-                            const response = await fetch(
-                                `${API}/bridge/sanne`,
-                                {
-                                    cache: "no-store",
-                                    headers: {
-                                        Accept: "application/json",
-                                    },
-                                }
-                            );
-
-                            if (!response.ok) {
-                                throw new Error(
-                                    `Bridge HTTP ${response.status}`
-                                );
-                            }
-
-                            const data =
-                                await response.json();
-
-                            const clips =
-                                Array.isArray(data?.clips)
-                                    ? data.clips
-                                        .filter(
-                                            (clip: any) =>
-                                                clip?.voice ===
-                                                "Sanne"
-                                        )
-                                        .slice(0, 5)
-                                    : [];
-
-                            if (!clips.length) {
-                                throw new Error(
-                                    "No Sanne clips found"
-                                );
-                            }
-
-                            const latest =
-                                clips.reduce(
-                                    (
-                                        newest: any,
-                                        clip: any
-                                    ) =>
-                                        new Date(
-                                            clip.createdAt
-                                        ).getTime() >
-                                        new Date(
-                                            newest.createdAt
-                                        ).getTime()
-                                            ? clip
-                                            : newest
-                                );
+                            const clip =
+                                await getLatestSanne();
 
                             ReactNative.Alert.alert(
                                 "Latest Sanne",
-                                `Timestamp:\n${latest.createdAt}\n\nClip ID:\n${latest.id}`
+                                `Timestamp:\n${clip.createdAt}\n\nClip ID:\n${clip.id}`
                             );
                         } catch (e: any) {
                             ReactNative.Alert.alert(
