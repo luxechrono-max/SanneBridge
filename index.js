@@ -1,43 +1,4 @@
-(function(exports,metro,patcher,common){'use strict';let stop = null;
-function startChannelMenu() {
-  const contextMenu = metro.findByProps(
-    "openContextMenu",
-    "closeContextMenu"
-  );
-  if (!contextMenu?.openContextMenu) {
-    throw new Error("Discord context menu unavailable");
-  }
-  stop = patcher.after(
-    "openContextMenu",
-    contextMenu,
-    (_args, result) => {
-      try {
-        const children = result?.props?.children;
-        if (Array.isArray(children)) {
-          children.push({
-            type: "button",
-            label: "Send Latest Sanne",
-            action: () => {
-              console.log(
-                "[SanneBridge] Send Latest Sanne"
-              );
-            }
-          });
-        }
-      } catch (e) {
-        console.log(
-          "[SanneBridge] menu patch error",
-          e
-        );
-      }
-      return result;
-    }
-  );
-  return () => {
-    stop?.();
-    stop = null;
-  };
-}var settings = () => {
+(function(exports,metro,common){'use strict';var settings = () => {
   const test = () => {
     const send = globalThis.__SanneSend;
     if (!send) {
@@ -85,11 +46,66 @@ function startChannelMenu() {
       "TEST SANNE SENDER"
     )
   )));
-};let stopChannelMenu = null;
+};const API = "https://sannewalid.aitnobajansen.workers.dev";
+async function sendLatestSanne() {
+  const r = await fetch(`${API}/bridge/sanne`, {
+    cache: "no-store",
+    headers: { Accept: "application/json" }
+  });
+  if (!r.ok) throw new Error(`Bridge HTTP ${r.status}`);
+  const data = await r.json();
+  const clips = Array.isArray(data?.clips) ? data.clips.filter((c) => c?.voice === "Sanne").slice(0, 5) : [];
+  if (!clips.length) throw new Error("No Sanne clips found");
+  const clip = clips.reduce(
+    (a, b) => new Date(b.createdAt).getTime() > new Date(a.createdAt).getTime() ? b : a
+  );
+  const mp3 = await fetch(clip.url);
+  if (!mp3.ok) throw new Error(`MP3 HTTP ${mp3.status}`);
+  const bytes = new Uint8Array(
+    await mp3.arrayBuffer()
+  );
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 32768) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(
+        i,
+        Math.min(i + 32768, bytes.length)
+      )
+    );
+  }
+  const fm = metro.findByProps(
+    "writeFile",
+    "getConstants"
+  );
+  if (!fm?.writeFile)
+    throw new Error("Bunny FileManager not found");
+  const filename = `sanne-${clip.id}.mp3`;
+  const path = await fm.writeFile(
+    "cache",
+    filename,
+    btoa(binary),
+    "base64"
+  );
+  const uploader = metro.findByProps(
+    "uploadLocalFiles"
+  );
+  if (!uploader?.uploadLocalFiles)
+    throw new Error(
+      "Discord uploadLocalFiles not found"
+    );
+  await uploader.uploadLocalFiles({
+    items: [{
+      uri: path,
+      filename,
+      mimeType: "audio/mpeg",
+      size: bytes.length
+    }],
+    flags: 0
+  });
+}
 const onLoad = () => {
-  stopChannelMenu = startChannelMenu();
+  globalThis.__SanneSend = sendLatestSanne;
 };
 const onUnload = () => {
-  stopChannelMenu?.();
-  stopChannelMenu = null;
-};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.patcher,vendetta.metro.common);
+  delete globalThis.__SanneSend;
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.metro.common);
