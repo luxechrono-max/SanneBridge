@@ -47,28 +47,24 @@
     )
   )));
 };const API = "https://sannewalid.aitnobajansen.workers.dev";
+let unpatch = null;
 async function sendLatestSanne(channelId) {
   const response = await fetch(`${API}/bridge/sanne`, {
     cache: "no-store",
     headers: { Accept: "application/json" }
   });
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Bridge HTTP ${response.status}`);
-  }
   const data = await response.json();
-  const clips = Array.isArray(data?.clips) ? data.clips.filter(
-    (clip) => clip?.voice === "Sanne"
-  ) : [];
-  if (!clips.length) {
+  const clips = Array.isArray(data?.clips) ? data.clips.filter((x) => x?.voice === "Sanne") : [];
+  if (!clips.length)
     throw new Error("No Sanne clips found");
-  }
   const latest = clips.reduce(
     (a, b) => new Date(b.createdAt).getTime() > new Date(a.createdAt).getTime() ? b : a
   );
   const mp3 = await fetch(latest.url);
-  if (!mp3.ok) {
+  if (!mp3.ok)
     throw new Error(`MP3 HTTP ${mp3.status}`);
-  }
   const buffer = await mp3.arrayBuffer();
   const bytes = new Uint8Array(buffer);
   let binary = "";
@@ -87,12 +83,10 @@ async function sendLatestSanne(channelId) {
   const uploader = metro.findByProps(
     "uploadLocalFiles"
   );
-  if (!files?.writeFile) {
+  if (!files?.writeFile)
     throw new Error("FileManager unavailable");
-  }
-  if (!uploader?.uploadLocalFiles) {
+  if (!uploader?.uploadLocalFiles)
     throw new Error("Uploader unavailable");
-  }
   const filename = `sanne-${latest.id}.mp3`;
   const uri = await files.writeFile(
     "cache",
@@ -115,5 +109,7 @@ const onLoad = () => {
   globalThis.__SanneSend = sendLatestSanne;
 };
 const onUnload = () => {
+  unpatch?.();
+  unpatch = null;
   delete globalThis.__SanneSend;
 };exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.metro.common);
