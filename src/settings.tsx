@@ -1,86 +1,74 @@
-import {
-    ReactNative,
-    showToast,
-} from "@vendetta/metro/common";
-import { findByProps } from "@vendetta/metro";
+import { ReactNative } from "@vendetta/metro/common";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
-import {
-    getSanneClips,
-    sendSanne,
-} from "./bridge";
 
-const { FormDivider, FormIcon, FormRow } = Forms;
-
-const { showSimpleActionSheet, hideActionSheet } =
-    findByProps("showSimpleActionSheet", "hideActionSheet");
+const {
+    FormDivider,
+    FormIcon,
+    FormRow,
+} = Forms;
 
 export default () => {
-    const openSanneClips = async () => {
+    const chooseClip = async () => {
         try {
-            showToast(
-                "Loading Sanne clips…",
-                getAssetIDByName("voice_bar_mute_off")
-            );
+            const bridge = (globalThis as any).__SanneBridge;
 
-            const clips = await getSanneClips();
+            if (!bridge) {
+                throw new Error(
+                    "SanneBridge is not running"
+                );
+            }
+
+            const clips =
+                await bridge.getSanneClips();
 
             if (!clips.length) {
-                showToast(
-                    "No Sanne clips available",
-                    getAssetIDByName("Small")
+                ReactNative.Alert.alert(
+                    "SanneBridge",
+                    "No Sanne clips available."
                 );
                 return;
             }
 
-            showSimpleActionSheet({
-                key: "SanneBridgeClips",
-                header: {
-                    title: "Latest 5 Sanne clips",
-                    onClose: () => hideActionSheet(),
-                },
-                options: clips.map((clip: any) => ({
-                    label: `Sanne · ${
-                        clip.createdAt
-                            ? new Date(
-                                clip.createdAt
-                            ).toLocaleTimeString()
-                            : "Latest"
-                    }${
-                        typeof clip.duration === "number"
-                            ? ` · ${Math.round(clip.duration)}s`
-                            : ""
-                    }`,
+            ReactNative.Alert.alert(
+                "Latest 5 Sanne clips",
+                "Choose a Sanne clip",
+                clips.map((clip: any) => ({
+                    text:
+                        `Sanne · ${
+                            clip.createdAt
+                                ? new Date(
+                                    clip.createdAt
+                                ).toLocaleTimeString()
+                                : "Latest"
+                        }${
+                            typeof clip.duration ===
+                            "number"
+                                ? ` · ${Math.round(
+                                    clip.duration
+                                )}s`
+                                : ""
+                        }`,
                     onPress: async () => {
-                        hideActionSheet();
-
                         try {
-                            await sendSanne(clip);
-                        } catch (e: any) {
-                            console.error(
-                                "[SanneBridge]",
-                                e
+                            await bridge.sendSanne(
+                                clip
                             );
-
-                            showToast(
+                        } catch (e: any) {
+                            ReactNative.Alert.alert(
+                                "SanneBridge Error",
                                 String(
                                     e?.message || e
-                                ),
-                                getAssetIDByName("Small")
+                                )
                             );
                         }
                     },
-                })),
-            });
-        } catch (e: any) {
-            console.error(
-                "[SanneBridge]",
-                e
+                }))
             );
-
-            showToast(
-                String(e?.message || e),
-                getAssetIDByName("Small")
+        } catch (e: any) {
+            ReactNative.Alert.alert(
+                "SanneBridge Error",
+                String(e?.message || e)
             );
         }
     };
@@ -102,8 +90,7 @@ export default () => {
 
             <FormRow
                 label="Choose Sanne clip"
-                trailing={FormRow.Arrow}
-                onPress={openSanneClips}
+                onPress={chooseClip}
             />
         </ReactNative.ScrollView>
     );
