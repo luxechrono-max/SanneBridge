@@ -1,6 +1,17 @@
 import { ReactNative } from "@vendetta/metro/common";
 
 export default () => {
+    const test = () => {
+        const send = (globalThis as any).__SanneSend;
+
+        ReactNative.Alert.alert(
+            "SanneBridge",
+            send
+                ? "Sanne sender is loaded."
+                : "Sanne sender is NOT loaded."
+        );
+    };
+
     return (
         <ReactNative.ScrollView>
             <ReactNative.View style={{ padding: 16 }}>
@@ -16,12 +27,7 @@ export default () => {
                 </ReactNative.Text>
 
                 <ReactNative.TouchableOpacity
-                    onPress={() => {
-                        ReactNative.Alert.alert(
-                            "SanneBridge",
-                            "Button callback works."
-                        );
-                    }}
+                    onPress={test}
                     style={{
                         padding: 16,
                         borderRadius: 8,
@@ -35,7 +41,7 @@ export default () => {
                             fontWeight: "700",
                         }}
                     >
-                        TEST SANNE BUTTON
+                        TEST SANNE SENDER
                     </ReactNative.Text>
                 </ReactNative.TouchableOpacity>
             </ReactNative.View>
