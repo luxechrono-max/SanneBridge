@@ -1,16 +1,11 @@
-import { ContextMenu } from "@vendetta/metro/common";
 import { findByProps } from "@vendetta/metro";
 
 const API = "https://sannewalid.aitnobajansen.workers.dev";
 
-let patches: (() => void)[] = [];
-
 async function sendLatestSanne(channelId: string) {
     const response = await fetch(`${API}/bridge/sanne`, {
         cache: "no-store",
-        headers: {
-            Accept: "application/json",
-        },
+        headers: { Accept: "application/json" },
     });
 
     if (!response.ok) {
@@ -57,15 +52,21 @@ async function sendLatestSanne(channelId: string) {
         );
     }
 
-    const base64 = btoa(binary);
-
     const files = findByProps(
         "writeFile",
         "getConstants"
     );
 
+    const uploader = findByProps(
+        "uploadLocalFiles"
+    );
+
     if (!files?.writeFile) {
-        throw new Error("Kettu FileManager unavailable");
+        throw new Error("FileManager unavailable");
+    }
+
+    if (!uploader?.uploadLocalFiles) {
+        throw new Error("Uploader unavailable");
     }
 
     const filename = `sanne-${latest.id}.mp3`;
@@ -73,75 +74,28 @@ async function sendLatestSanne(channelId: string) {
     const uri = await files.writeFile(
         "cache",
         filename,
-        base64,
+        btoa(binary),
         "base64"
     );
 
-    const uploader = findByProps(
-        "uploadLocalFiles"
-    );
-
-    if (!uploader?.uploadLocalFiles) {
-        throw new Error(
-            "Discord uploader unavailable"
-        );
-    }
-
     await uploader.uploadLocalFiles({
         channelId,
-        items: [
-            {
-                uri,
-                filename,
-                mimeType: "audio/mpeg",
-                size: bytes.length,
-            },
-        ],
+        items: [{
+            uri,
+            filename,
+            mimeType: "audio/mpeg",
+            size: bytes.length,
+        }],
         flags: 0,
     });
 }
 
 export const onLoad = () => {
-    const unpatch = ContextMenu.patch(
-        "channel-context",
-        (ret: any, props: any) => {
-            if (!ret || !props?.channel) {
-                return ret;
-            }
-
-            const item = ContextMenu.buildItem({
-                label: "Send Latest Sanne",
-                action: async () => {
-                    try {
-                        await sendLatestSanne(
-                            props.channel.id
-                        );
-                    } catch (e: any) {
-                        console.error(
-                            "[SanneBridge]",
-                            e
-                        );
-                    }
-                },
-            });
-
-            ret.props.children.push(item);
-
-            return ret;
-        }
-    );
-
-    patches.push(unpatch);
+    (globalThis as any).__SanneSend = sendLatestSanne;
 };
 
 export const onUnload = () => {
-    patches.forEach((unpatch) => {
-        try {
-            unpatch();
-        } catch {}
-    });
-
-    patches = [];
+    delete (globalThis as any).__SanneSend;
 };
 
 export { default as settings } from "./settings";
