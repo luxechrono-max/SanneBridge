@@ -17,9 +17,27 @@ export function startChannelMenu() {
         "openContextMenu",
         contextMenu,
         (_args: any[], result: any) => {
-            console.log(
-                "[SanneBridge] context menu opened"
-            );
+            try {
+                const children =
+                    result?.props?.children;
+
+                if (Array.isArray(children)) {
+                    children.push({
+                        type: "button",
+                        label: "Send Latest Sanne",
+                        action: () => {
+                            console.log(
+                                "[SanneBridge] Send Latest Sanne"
+                            );
+                        },
+                    });
+                }
+            } catch (e) {
+                console.log(
+                    "[SanneBridge] menu patch error",
+                    e
+                );
+            }
 
             return result;
         }
