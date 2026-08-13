@@ -1,5 +1,5 @@
 import { ReactNative } from "@vendetta/metro/common";
-import { getAssetIDByName } from "@vendetta/ui/assets";
+import { getLatestSanne } from "./sanneApi";
 
 export default () => {
     return (
@@ -17,12 +17,22 @@ export default () => {
                 </ReactNative.Text>
 
                 <ReactNative.TouchableOpacity
-                    onPress={() =>
-                        ReactNative.Alert.alert(
-                            "SanneBridge",
-                            "Button callback works."
-                        )
-                    }
+                    onPress={async () => {
+                        try {
+                            const clip =
+                                await getLatestSanne();
+
+                            ReactNative.Alert.alert(
+                                "Latest Sanne",
+                                `Timestamp:\n${clip.createdAt}\n\nClip ID:\n${clip.id}`
+                            );
+                        } catch (e: any) {
+                            ReactNative.Alert.alert(
+                                "SanneBridge Error",
+                                String(e?.message || e)
+                            );
+                        }
+                    }}
                     style={{
                         padding: 16,
                         borderRadius: 8,
@@ -36,7 +46,7 @@ export default () => {
                             fontWeight: "700",
                         }}
                     >
-                        TEST SANNE BUTTON
+                        FETCH LATEST SANNE
                     </ReactNative.Text>
                 </ReactNative.TouchableOpacity>
             </ReactNative.View>
