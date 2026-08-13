@@ -31,13 +31,16 @@ async function getLatestSanne() {
     ).getTime() ? clip : latest
   );
 }var settings = () => {
-  const fetchLatest = async () => {
-    try {
-      const fn = globalThis.__SanneGetLatest;
-      if (!fn) {
-        throw new Error("Sanne API is not loaded.");
-      }
-      const clip = await fn();
+  const fetchLatest = () => {
+    const fn = globalThis.__SanneGetLatest;
+    if (!fn) {
+      common.ReactNative.Alert.alert(
+        "SanneBridge",
+        "Sanne API is not loaded."
+      );
+      return;
+    }
+    fn().then((clip) => {
       common.ReactNative.Alert.alert(
         "Latest Sanne",
         `Timestamp:
@@ -49,12 +52,12 @@ ${clip.id}
 URL:
 ${clip.url}`
       );
-    } catch (e) {
+    }).catch((e) => {
       common.ReactNative.Alert.alert(
         "SanneBridge Error",
         String(e?.message || e)
       );
-    }
+    });
   };
   return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
     common.ReactNative.Text,
