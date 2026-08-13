@@ -19,7 +19,10 @@ export default () => {
             <FormDivider />
 
             <FormRow
-                label="SanneBridge is enabled"
+                label="TEST SANNE BUTTON"
+                onPress={() => {
+                    console.log("[SanneBridge] button pressed");
+                }}
             />
         </ReactNative.ScrollView>
     );
