@@ -1,5 +1,5 @@
 import { ReactNative } from "@vendetta/metro/common";
-import { getLatestSanne } from "./sanneApi";
+import { getAssetIDByName } from "@vendetta/ui/assets";
 
 export default () => {
     return (
@@ -17,21 +17,11 @@ export default () => {
                 </ReactNative.Text>
 
                 <ReactNative.TouchableOpacity
-                    onPress={async () => {
-                        try {
-                            const clip =
-                                await getLatestSanne();
-
-                            ReactNative.Alert.alert(
-                                "Latest Sanne",
-                                `Timestamp:\n${clip.createdAt}\n\nClip ID:\n${clip.id}`
-                            );
-                        } catch (e: any) {
-                            ReactNative.Alert.alert(
-                                "SanneBridge Error",
-                                String(e?.message || e)
-                            );
-                        }
+                    onPress={() => {
+                        ReactNative.Alert.alert(
+                            "SanneBridge",
+                            "Ready"
+                        );
                     }}
                     style={{
                         padding: 16,
@@ -46,7 +36,7 @@ export default () => {
                             fontWeight: "700",
                         }}
                     >
-                        FETCH LATEST SANNE
+                        SANNE
                     </ReactNative.Text>
                 </ReactNative.TouchableOpacity>
             </ReactNative.View>
