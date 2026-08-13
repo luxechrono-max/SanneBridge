@@ -1,6 +1,9 @@
 import { findByProps } from "@vendetta/metro";
+import { before } from "@vendetta/patcher";
 
 const API = "https://sannewalid.aitnobajansen.workers.dev";
+
+let unpatch: (() => void) | null = null;
 
 async function sendLatestSanne(channelId: string) {
     const response = await fetch(`${API}/bridge/sanne`, {
@@ -8,21 +11,17 @@ async function sendLatestSanne(channelId: string) {
         headers: { Accept: "application/json" },
     });
 
-    if (!response.ok) {
+    if (!response.ok)
         throw new Error(`Bridge HTTP ${response.status}`);
-    }
 
     const data = await response.json();
 
     const clips = Array.isArray(data?.clips)
-        ? data.clips.filter(
-            (clip: any) => clip?.voice === "Sanne"
-        )
+        ? data.clips.filter((x: any) => x?.voice === "Sanne")
         : [];
 
-    if (!clips.length) {
+    if (!clips.length)
         throw new Error("No Sanne clips found");
-    }
 
     const latest = clips.reduce(
         (a: any, b: any) =>
@@ -34,9 +33,8 @@ async function sendLatestSanne(channelId: string) {
 
     const mp3 = await fetch(latest.url);
 
-    if (!mp3.ok) {
+    if (!mp3.ok)
         throw new Error(`MP3 HTTP ${mp3.status}`);
-    }
 
     const buffer = await mp3.arrayBuffer();
     const bytes = new Uint8Array(buffer);
@@ -61,13 +59,11 @@ async function sendLatestSanne(channelId: string) {
         "uploadLocalFiles"
     );
 
-    if (!files?.writeFile) {
+    if (!files?.writeFile)
         throw new Error("FileManager unavailable");
-    }
 
-    if (!uploader?.uploadLocalFiles) {
+    if (!uploader?.uploadLocalFiles)
         throw new Error("Uploader unavailable");
-    }
 
     const filename = `sanne-${latest.id}.mp3`;
 
@@ -95,6 +91,8 @@ export const onLoad = () => {
 };
 
 export const onUnload = () => {
+    unpatch?.();
+    unpatch = null;
     delete (globalThis as any).__SanneSend;
 };
 
