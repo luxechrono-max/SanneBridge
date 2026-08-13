@@ -20,8 +20,34 @@ export function startChannelMenu() {
     unpatch = after(
         method,
         picker,
-        (_args: any[], result: any) => {
-            console.log("[SanneBridge] attachment picker opened");
+        (args: any[], result: any) => {
+            const props = args?.[0] ?? {};
+
+            const children =
+                result?.props?.children;
+
+            const send =
+                (globalThis as any).__SanneSend;
+
+            if (
+                send &&
+                Array.isArray(children)
+            ) {
+                children.push({
+                    type: "button",
+                    label: "Send Latest Sanne",
+                    action: () => {
+                        const channelId =
+                            props.channelId ??
+                            props.channel?.id;
+
+                        if (!channelId) return;
+
+                        send(channelId);
+                    },
+                });
+            }
+
             return result;
         }
     );
