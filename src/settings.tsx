@@ -1,10 +1,12 @@
-import { ReactNative } from "@vendetta/metro/common";
+import { ReactNative, NavigationNative } from "@vendetta/metro/common";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 
 const { FormDivider, FormIcon, FormRow } = Forms;
 
 export default () => {
+    const navigation = NavigationNative.useNavigation();
+
     return (
         <ReactNative.ScrollView>
             <FormRow
@@ -19,7 +21,19 @@ export default () => {
             <FormDivider />
 
             <FormRow
-                label="SanneBridge is enabled"
+                label="Open SanneBridge"
+                onPress={() => {
+                    const SannePage =
+                        require("./sannePage").default;
+
+                    navigation.push(
+                        "VendettaCustomPage",
+                        {
+                            title: "SanneBridge",
+                            render: SannePage,
+                        }
+                    );
+                }}
             />
         </ReactNative.ScrollView>
     );
