@@ -1,4 +1,4 @@
-(function(exports,common){'use strict';var settings = () => {
+(function(exports,metro,common){'use strict';var settings = () => {
   return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
     common.ReactNative.Text,
     {
@@ -42,4 +42,4 @@
 };
 const onUnload = () => {
   console.log("[SanneBridge] unloaded");
-};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro.common);
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.metro.common);
