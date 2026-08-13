@@ -1,51 +1,20 @@
-(function(exports,wrappers,common,common$1){'use strict';let ran = false;
-function startChannelMenu() {
-  if (ran) return () => {
-  };
-  ran = true;
-  const candidates = [
-    "sendMessage",
-    "sendMessageWithAttachments",
-    "uploadFile",
-    "uploadFiles",
-    "pickFile",
-    "pickFiles",
-    "openAttachmentPicker",
-    "toggleAttachmentPicker"
-  ];
-  const results = [];
-  for (const prop of candidates) {
-    try {
-      const modules = wrappers.findByPropsAll(prop);
-      if (modules?.length) {
-        results.push(`${prop}: ${modules.length}`);
-      }
-    } catch {
-    }
-  }
-  common.ReactNative.Alert.alert(
-    "SanneBridge",
-    results.length ? results.join("\n") : "No attachment/upload modules found"
-  );
-  return () => {
-  };
-}var settings = () => {
+(function(exports,finders,factories,common$1,common){'use strict';var settings = () => {
   const test = () => {
     const send = globalThis.__SanneSend;
     if (!send) {
-      common$1.ReactNative.Alert.alert(
+      common.ReactNative.Alert.alert(
         "SanneBridge",
         "Sanne sender is NOT loaded."
       );
       return;
     }
-    common$1.ReactNative.Alert.alert(
+    common.ReactNative.Alert.alert(
       "SanneBridge",
       "Sender ready. The next step will execute it against a real channel."
     );
   };
-  return /* @__PURE__ */ React.createElement(common$1.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common$1.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
-    common$1.ReactNative.Text,
+  return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
+    common.ReactNative.Text,
     {
       style: {
         color: "white",
@@ -56,7 +25,7 @@ function startChannelMenu() {
     },
     "SanneBridge"
   ), /* @__PURE__ */ React.createElement(
-    common$1.ReactNative.TouchableOpacity,
+    common.ReactNative.TouchableOpacity,
     {
       onPress: test,
       style: {
@@ -66,7 +35,7 @@ function startChannelMenu() {
       }
     },
     /* @__PURE__ */ React.createElement(
-      common$1.ReactNative.Text,
+      common.ReactNative.Text,
       {
         style: {
           color: "white",
@@ -77,11 +46,27 @@ function startChannelMenu() {
       "TEST SANNE SENDER"
     )
   )));
-};let stop = null;
-const onLoad = () => {
-  stop = startChannelMenu();
+};const onLoad = () => {
+  const found = finders.findAllExports(
+    factories.createSimpleFilter(
+      (m) => {
+        if (!m || typeof m !== "object") return false;
+        return Object.keys(m).some(
+          (key) => /attachment|upload|file|composer|messageInput/i.test(key)
+        );
+      },
+      "sanne-runtime-upload-search"
+    )
+  );
+  const results = found.map(
+    (m) => Object.keys(m).filter(
+      (key) => /attachment|upload|file|composer|messageInput/i.test(key)
+    )
+  ).flat();
+  common$1.ReactNative.Alert.alert(
+    "SanneBridge",
+    results.length ? [...new Set(results)].slice(0, 80).join("\n") : "NO MATCHING MODULE PROPERTIES"
+  );
 };
 const onUnload = () => {
-  stop?.();
-  stop = null;
-};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},@metro/wrappers,@metro/common,vendetta.metro.common);
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},@metro/finders,@metro/factories,@metro/common,vendetta.metro.common);
