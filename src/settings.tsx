@@ -4,11 +4,17 @@ export default () => {
     const test = () => {
         const send = (globalThis as any).__SanneSend;
 
+        if (!send) {
+            ReactNative.Alert.alert(
+                "SanneBridge",
+                "Sanne sender is NOT loaded."
+            );
+            return;
+        }
+
         ReactNative.Alert.alert(
             "SanneBridge",
-            send
-                ? "Sanne sender is loaded."
-                : "Sanne sender is NOT loaded."
+            "Sender ready. The next step will execute it against a real channel."
         );
     };
 
