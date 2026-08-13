@@ -1,9 +1,16 @@
 (function(exports,metro,common){'use strict';var settings = () => {
   const test = () => {
     const send = globalThis.__SanneSend;
+    if (!send) {
+      common.ReactNative.Alert.alert(
+        "SanneBridge",
+        "Sanne sender is NOT loaded."
+      );
+      return;
+    }
     common.ReactNative.Alert.alert(
       "SanneBridge",
-      send ? "Sanne sender is loaded." : "Sanne sender is NOT loaded."
+      "Sender ready. The next step will execute it against a real channel."
     );
   };
   return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
