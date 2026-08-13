@@ -21,32 +21,24 @@ export function startChannelMenu() {
         method,
         picker,
         (args: any[], result: any) => {
-            const props = args?.[0] ?? {};
+            const send = (globalThis as any).__SanneSend;
 
-            const children =
-                result?.props?.children;
+            if (!send) return result;
 
-            const send =
-                (globalThis as any).__SanneSend;
+            try {
+                const channelId =
+                    args?.[0]?.channelId ??
+                    args?.[0]?.channel?.id ??
+                    args?.[1]?.channelId ??
+                    args?.[1]?.channel?.id;
 
-            if (
-                send &&
-                Array.isArray(children)
-            ) {
-                children.push({
-                    type: "button",
-                    label: "Send Latest Sanne",
-                    action: () => {
-                        const channelId =
-                            props.channelId ??
-                            props.channel?.id;
+                if (!channelId) return result;
 
-                        if (!channelId) return;
-
-                        send(channelId);
-                    },
-                });
-            }
+                console.log(
+                    "[SanneBridge] picker channel:",
+                    channelId
+                );
+            } catch {}
 
             return result;
         }
