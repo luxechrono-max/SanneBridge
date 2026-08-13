@@ -1,4 +1,5 @@
 import { ReactNative } from "@vendetta/metro/common";
+import { getAssetIDByName } from "@vendetta/ui/assets";
 
 export default () => {
     return (
@@ -16,32 +17,12 @@ export default () => {
                 </ReactNative.Text>
 
                 <ReactNative.TouchableOpacity
-                    onPress={async () => {
-                        try {
-                            const getLatest =
-                                (globalThis as any)
-                                    .__SanneGetLatest;
-
-                            if (!getLatest) {
-                                throw new Error(
-                                    "SanneBridge API unavailable"
-                                );
-                            }
-
-                            const clip =
-                                await getLatest();
-
-                            ReactNative.Alert.alert(
-                                "Latest Sanne",
-                                `Timestamp:\n${clip.createdAt}\n\nClip ID:\n${clip.id}\n\nURL:\n${clip.url}`
-                            );
-                        } catch (e: any) {
-                            ReactNative.Alert.alert(
-                                "SanneBridge Error",
-                                String(e?.message || e)
-                            );
-                        }
-                    }}
+                    onPress={() =>
+                        ReactNative.Alert.alert(
+                            "SanneBridge",
+                            "Button callback works."
+                        )
+                    }
                     style={{
                         padding: 16,
                         borderRadius: 8,
@@ -55,7 +36,7 @@ export default () => {
                             fontWeight: "700",
                         }}
                     >
-                        FETCH LATEST SANNE
+                        TEST SANNE BUTTON
                     </ReactNative.Text>
                 </ReactNative.TouchableOpacity>
             </ReactNative.View>
