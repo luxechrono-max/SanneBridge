@@ -1,16 +1,13 @@
-import { ReactNative, NavigationNative } from "@vendetta/metro/common";
+import { ReactNative } from "@vendetta/metro/common";
+import { findByProps } from "@vendetta/metro";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 import SannePage from "./sannePage";
 
-const {
-    FormDivider,
-    FormIcon,
-    FormRow,
-} = Forms;
+const { FormDivider, FormIcon, FormRow } = Forms;
 
 export default () => {
-    const navigation = NavigationNative.useNavigation();
+    const navigation = findByProps("push", "pop");
 
     return (
         <ReactNative.ScrollView>
