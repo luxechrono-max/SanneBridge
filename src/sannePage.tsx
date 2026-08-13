@@ -7,7 +7,7 @@ import { getAssetIDByName } from "@vendetta/ui/assets";
 import {
     getSanneClips,
     sendSanne,
-} from "./index";
+} from "./bridge";
 
 export default () => {
     const {
@@ -47,11 +47,7 @@ export default () => {
         null,
         React.createElement(
             View,
-            {
-                style: {
-                    padding: 16,
-                },
-            },
+            { style: { padding: 16 } },
 
             React.createElement(
                 Text,
@@ -119,21 +115,6 @@ export default () => {
                         },
                     },
                     error
-                )
-                : null,
-
-            !loading &&
-            !error &&
-            clips.length === 0
-                ? React.createElement(
-                    Text,
-                    {
-                        style: {
-                            color: "#b5bac1",
-                            margin: 12,
-                        },
-                    },
-                    "No Sanne clips available."
                 )
                 : null,
 
