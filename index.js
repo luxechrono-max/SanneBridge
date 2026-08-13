@@ -45,10 +45,33 @@ async function getLatestSanne() {
   ), /* @__PURE__ */ React.createElement(
     common.ReactNative.TouchableOpacity,
     {
-      onPress: () => common.ReactNative.Alert.alert(
-        "SanneBridge",
-        "Button callback works."
-      ),
+      onPress: async () => {
+        try {
+          const getLatest = globalThis.__SanneGetLatest;
+          if (!getLatest) {
+            throw new Error(
+              "SanneBridge API unavailable"
+            );
+          }
+          const clip = await getLatest();
+          common.ReactNative.Alert.alert(
+            "Latest Sanne",
+            `Timestamp:
+${clip.createdAt}
+
+Clip ID:
+${clip.id}
+
+URL:
+${clip.url}`
+          );
+        } catch (e) {
+          common.ReactNative.Alert.alert(
+            "SanneBridge Error",
+            String(e?.message || e)
+          );
+        }
+      },
       style: {
         padding: 16,
         borderRadius: 8,
@@ -64,7 +87,7 @@ async function getLatestSanne() {
           fontWeight: "700"
         }
       },
-      "TEST SANNE BUTTON"
+      "FETCH LATEST SANNE"
     )
   )));
 };const onLoad = () => {
