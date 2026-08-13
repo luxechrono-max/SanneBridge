@@ -1,25 +1,25 @@
 import { findByProps } from "@vendetta/metro";
-import { before } from "@vendetta/patcher";
+import { after } from "@vendetta/patcher";
 
-const send = () => (globalThis as any).__SanneSend;
+let unpatch: (() => void) | null = null;
 
 export function startChannelMenu() {
-    const menu = findByProps("openContextMenu", "closeContextMenu");
+    const menu = findByProps("openContextMenu");
 
     if (!menu?.openContextMenu) {
-        throw new Error("Discord context menu module not found");
+        throw new Error("Context menu module not found");
     }
 
-    return before("openContextMenu", menu, (args: any[]) => {
-        const props = args?.[1];
+    unpatch = after(
+        "openContextMenu",
+        menu,
+        (_args: any[], result: any) => {
+            return result;
+        }
+    );
 
-        if (!props?.channel?.id) return args;
-
-        console.log(
-            "[SanneBridge] channel:",
-            props.channel.id
-        );
-
-        return args;
-    });
+    return () => {
+        unpatch?.();
+        unpatch = null;
+    };
 }
