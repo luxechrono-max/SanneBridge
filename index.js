@@ -1,4 +1,4 @@
-(function(exports,common,metro){'use strict';var settings = () => {
+(function(exports,metro,common){'use strict';var settings = () => {
   return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(common.ReactNative.View, { style: { padding: 16 } }, /* @__PURE__ */ React.createElement(
     common.ReactNative.Text,
     {
@@ -38,13 +38,10 @@
     )
   )));
 };const API = "https://sannewalid.aitnobajansen.workers.dev";
-let patches = [];
 async function sendLatestSanne(channelId) {
   const response = await fetch(`${API}/bridge/sanne`, {
     cache: "no-store",
-    headers: {
-      Accept: "application/json"
-    }
+    headers: { Accept: "application/json" }
   });
   if (!response.ok) {
     throw new Error(`Bridge HTTP ${response.status}`);
@@ -74,76 +71,40 @@ async function sendLatestSanne(channelId) {
       )
     );
   }
-  const base64 = btoa(binary);
   const files = metro.findByProps(
     "writeFile",
     "getConstants"
   );
+  const uploader = metro.findByProps(
+    "uploadLocalFiles"
+  );
   if (!files?.writeFile) {
-    throw new Error("Kettu FileManager unavailable");
+    throw new Error("FileManager unavailable");
+  }
+  if (!uploader?.uploadLocalFiles) {
+    throw new Error("Uploader unavailable");
   }
   const filename = `sanne-${latest.id}.mp3`;
   const uri = await files.writeFile(
     "cache",
     filename,
-    base64,
+    btoa(binary),
     "base64"
   );
-  const uploader = metro.findByProps(
-    "uploadLocalFiles"
-  );
-  if (!uploader?.uploadLocalFiles) {
-    throw new Error(
-      "Discord uploader unavailable"
-    );
-  }
   await uploader.uploadLocalFiles({
     channelId,
-    items: [
-      {
-        uri,
-        filename,
-        mimeType: "audio/mpeg",
-        size: bytes.length
-      }
-    ],
+    items: [{
+      uri,
+      filename,
+      mimeType: "audio/mpeg",
+      size: bytes.length
+    }],
     flags: 0
   });
 }
 const onLoad = () => {
-  const unpatch = common.ContextMenu.patch(
-    "channel-context",
-    (ret, props) => {
-      if (!ret || !props?.channel) {
-        return ret;
-      }
-      const item = common.ContextMenu.buildItem({
-        label: "Send Latest Sanne",
-        action: async () => {
-          try {
-            await sendLatestSanne(
-              props.channel.id
-            );
-          } catch (e) {
-            console.error(
-              "[SanneBridge]",
-              e
-            );
-          }
-        }
-      });
-      ret.props.children.push(item);
-      return ret;
-    }
-  );
-  patches.push(unpatch);
+  globalThis.__SanneSend = sendLatestSanne;
 };
 const onUnload = () => {
-  patches.forEach((unpatch) => {
-    try {
-      unpatch();
-    } catch {
-    }
-  });
-  patches = [];
-};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro.common,vendetta.metro);
+  delete globalThis.__SanneSend;
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.metro.common);
