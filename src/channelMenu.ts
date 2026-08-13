@@ -4,51 +4,87 @@ import { after } from "@vendetta/patcher";
 let unpatch: (() => void) | null = null;
 
 export function startChannelMenu() {
-    const picker = findByProps(
-        "openAttachmentPicker",
-        "toggleAttachmentPicker"
+    const actionSheet = findByProps(
+        "openLazy",
+        "hideActionSheet"
     );
 
-    if (!picker) {
-        throw new Error("Attachment picker module not found");
+    if (!actionSheet?.openLazy) {
+        throw new Error("ActionSheet module not found");
     }
 
-    const method = picker.openAttachmentPicker
-        ? "openAttachmentPicker"
-        : "toggleAttachmentPicker";
-
     unpatch = after(
-        method,
-        picker,
+        "openLazy",
+        actionSheet,
         (args: any[], result: any) => {
-            const channelId =
-                args?.[0]?.channelId ??
-                args?.[0]?.channel?.id ??
-                args?.[1]?.channelId ??
-                args?.[1]?.channel?.id;
+            const lazyImport = args?.[0];
+            const key = String(args?.[1] ?? "");
+            const props = args?.[2] ?? {};
 
-            if (!channelId) return result;
+            if (
+                !lazyImport ||
+                !/attachment|upload|file/i.test(key)
+            ) {
+                return result;
+            }
 
-            const children = result?.props?.children;
+            const React = findByProps("createElement");
+            const RN = findByProps(
+                "View",
+                "Text",
+                "Pressable"
+            );
 
-            if (!Array.isArray(children)) return result;
+            const send =
+                (globalThis as any).__SanneSend;
 
-            const send = (globalThis as any).__SanneSend;
+            if (!React || !RN || !send) {
+                return result;
+            }
 
-            if (!send) return result;
+            args[0] = Promise.resolve({
+                default: (sheetProps: any) => {
+                    const Original = lazyImport;
 
-            children.push({
-                type: "button",
-                label: "Send Latest Sanne",
-                action: async () => {
-                    try {
-                        await send(channelId);
-                    } catch (e) {
-                        console.error(
-                            "[SanneBridge] send failed",
-                            e
-                        );
-                    }
+                    const channelId =
+                        props.channelId ??
+                        props.channel?.id ??
+                        sheetProps?.channelId ??
+                        sheetProps?.channel?.id;
+
+                    return React.createElement(
+                        RN.View,
+                        null,
+
+                        React.createElement(
+                            Original.default ?? Original,
+                            sheetProps
+                        ),
+
+                        React.createElement(
+                            RN.Pressable,
+                            {
+                                onPress: () => {
+                                    if (channelId) {
+                                        send(channelId);
+                                    }
+                                },
+                                style: {
+                                    padding: 16,
+                                },
+                            },
+                            React.createElement(
+                                RN.Text,
+                                {
+                                    style: {
+                                        fontSize: 16,
+                                        fontWeight: "700",
+                                    },
+                                },
+                                "Send Latest Sanne"
+                            )
+                        )
+                    );
                 },
             });
 
