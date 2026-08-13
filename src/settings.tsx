@@ -1,10 +1,12 @@
 import { ReactNative } from "@vendetta/metro/common";
+import { findByProps } from "@vendetta/metro";
 
 export default () => {
-    const fetchLatest = () => {
-        const fn = (globalThis as any).__SanneGetLatest;
+    const sendLatest = () => {
+        const getLatest =
+            (globalThis as any).__SanneGetLatest;
 
-        if (!fn) {
+        if (!getLatest) {
             ReactNative.Alert.alert(
                 "SanneBridge",
                 "Sanne API is not loaded."
@@ -12,11 +14,91 @@ export default () => {
             return;
         }
 
-        fn()
-            .then((clip: any) => {
+        getLatest()
+            .then(async (clip: any) => {
+                const response = await fetch(clip.url);
+
+                if (!response.ok) {
+                    throw new Error(
+                        `MP3 HTTP ${response.status}`
+                    );
+                }
+
+                const buffer =
+                    await response.arrayBuffer();
+
+                const bytes =
+                    new Uint8Array(buffer);
+
+                let binary = "";
+
+                for (
+                    let i = 0;
+                    i < bytes.length;
+                    i += 32768
+                ) {
+                    binary += String.fromCharCode(
+                        ...bytes.subarray(
+                            i,
+                            Math.min(
+                                i + 32768,
+                                bytes.length
+                            )
+                        )
+                    );
+                }
+
+                const base64 = btoa(binary);
+
+                const fileManager =
+                    findByProps(
+                        "writeFile",
+                        "getConstants"
+                    );
+
+                if (!fileManager?.writeFile) {
+                    throw new Error(
+                        "Kettu FileManager not found"
+                    );
+                }
+
+                const filename =
+                    `sanne-${clip.id}.mp3`;
+
+                const path =
+                    await fileManager.writeFile(
+                        "cache",
+                        filename,
+                        base64,
+                        "base64"
+                    );
+
+                const uploader =
+                    findByProps(
+                        "uploadLocalFiles"
+                    );
+
+                if (!uploader?.uploadLocalFiles) {
+                    throw new Error(
+                        "Discord uploadLocalFiles not found"
+                    );
+                }
+
+                await uploader.uploadLocalFiles({
+                    items: [
+                        {
+                            uri: path,
+                            filename,
+                            mimeType: "audio/mpeg",
+                            size: bytes.length,
+                        },
+                    ],
+                    flags: 0,
+                });
+
                 ReactNative.Alert.alert(
-                    "Latest Sanne",
-                    `Timestamp:\n${clip.createdAt}\n\nClip ID:\n${clip.id}\n\nURL:\n${clip.url}`
+                    "SanneBridge",
+                    "Latest Sanne MP3 uploaded."
                 );
             })
             .catch((e: any) => {
@@ -29,7 +111,9 @@ export default () => {
 
     return (
         <ReactNative.ScrollView>
-            <ReactNative.View style={{ padding: 16 }}>
+            <ReactNative.View
+                style={{ padding: 16 }}
+            >
                 <ReactNative.Text
                     style={{
                         color: "white",
@@ -42,7 +126,7 @@ export default () => {
                 </ReactNative.Text>
 
                 <ReactNative.TouchableOpacity
-                    onPress={fetchLatest}
+                    onPress={sendLatest}
                     style={{
                         padding: 16,
                         borderRadius: 8,
@@ -56,7 +140,7 @@ export default () => {
                             fontWeight: "700",
                         }}
                     >
-                        FETCH LATEST SANNE
+                        SEND LATEST SANNE
                     </ReactNative.Text>
                 </ReactNative.TouchableOpacity>
             </ReactNative.View>
