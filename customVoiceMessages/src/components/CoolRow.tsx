@@ -1,13 +1,11 @@
 import { findByProps } from "@vendetta/metro";
-import { ReactNative as RN, stylesheet } from "@vendetta/metro/common";
+import { React, ReactNative as RN, stylesheet } from "@vendetta/metro/common";
 import { semanticColors } from "@vendetta/ui";
 import { Forms } from "@vendetta/ui/components";
 
 const { FormRow } = Forms;
 const ActionSheetRow = findByProps("ActionSheetRow")?.ActionSheetRow;
 
-// professionally stolen from nexpid https://github.com/castdrian/vendetta-plugins/commit/5c9223e0f94562a270b48b6936b0cbbefe2f46c8
-// https://github.com/nexpid/VendettaPlugins/blob/87193fbd2e73d4a0d492220606cd2c501263ff6b/stuff/types.tsx#L122
 export default function ({
     label,
     icon,
