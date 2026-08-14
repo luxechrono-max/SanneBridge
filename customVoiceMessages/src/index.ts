@@ -15,10 +15,7 @@ export const onLoad = () => {
     try {
         patches.push(voiceMessages());
     } catch (e) {
-        console.log(
-            "[CustomVoiceMessages+] voiceMessages failed:",
-            e
-        );
+        console.log("[CustomVoiceMessages+] voiceMessages failed:", e);
     }
 
     try {
@@ -26,10 +23,7 @@ export const onLoad = () => {
         patches.push(msgSuccess());
         patches.push(msgUpdate());
     } catch (e) {
-        console.log(
-            "[CustomVoiceMessages+] messagePatches failed:",
-            e
-        );
+        console.log("[CustomVoiceMessages+] messagePatches failed:", e);
     }
 };
 
