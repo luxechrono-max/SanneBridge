@@ -132,15 +132,15 @@ function CoolRow({
       tintColor: ui.semanticColors.INTERACTIVE_NORMAL
     }
   });
-  return ActionSheetRow ? /* @__PURE__ */ React.createElement(
+  return ActionSheetRow ? /* @__PURE__ */ common.React.createElement(
     ActionSheetRow,
     {
       label,
-      icon: /* @__PURE__ */ React.createElement(
+      icon: /* @__PURE__ */ common.React.createElement(
         ActionSheetRow.Icon,
         {
           source: icon,
-          IconComponent: () => /* @__PURE__ */ React.createElement(
+          IconComponent: () => /* @__PURE__ */ common.React.createElement(
             common.ReactNative.Image,
             {
               resizeMode: "cover",
@@ -152,11 +152,11 @@ function CoolRow({
       ),
       onPress: () => onPress?.()
     }
-  ) : /* @__PURE__ */ React.createElement(
+  ) : /* @__PURE__ */ common.React.createElement(
     FormRow,
     {
       label,
-      leading: /* @__PURE__ */ React.createElement(FormRow.Icon, { source: icon }),
+      leading: /* @__PURE__ */ common.React.createElement(FormRow.Icon, { source: icon }),
       onPress: () => onPress?.()
     }
   );
