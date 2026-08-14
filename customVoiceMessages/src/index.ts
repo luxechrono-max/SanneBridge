@@ -1,25 +1,40 @@
 import voiceMessages from "./patches/voiceMessages";
+import {
+    msgCreate,
+    msgSuccess,
+    msgUpdate
+} from "./patches/messagePatches";
 import { storage } from "@vendetta/plugin";
 
 storage.sendAsVM ??= true;
 storage.allAsVM ??= false;
 
-let voicePatch: (() => void) | undefined;
+let patches: (() => void)[] = [];
 
 export const onLoad = () => {
     try {
-        voicePatch = voiceMessages();
+        patches.push(voiceMessages());
     } catch (e) {
-        console.log("[CustomVoiceMessages+] voice patch failed:", e);
+        console.log("[CustomVoiceMessages+] voiceMessages failed:", e);
+    }
+
+    try {
+        patches.push(msgCreate());
+        patches.push(msgSuccess());
+        patches.push(msgUpdate());
+    } catch (e) {
+        console.log("[CustomVoiceMessages+] messagePatches failed:", e);
     }
 };
 
 export const onUnload = () => {
-    try {
-        voicePatch?.();
-    } catch {}
-    
-    voicePatch = undefined;
+    patches.forEach((p) => {
+        try {
+            p?.();
+        } catch {}
+    });
+
+    patches = [];
 };
 
 export { default as settings } from "./settings";
