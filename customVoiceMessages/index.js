@@ -80,58 +80,119 @@ var voiceMessages = () => {
   };
 };function safePatch(event, callback) {
   try {
-    const handlers = common.FluxDispatcher?._actionHandlers?._computeOrderedActionHandlers?.(event);
-    const handler = handlers?.find(
-      (i) => i.name === "MessageStore"
+    const handlers = common.FluxDispatcher._actionHandlers._computeOrderedActionHandlers(event);
+    if (!handlers) {
+      return () => {
+      };
+    }
+    const handler = handlers.find(
+      (i) => i && i.name === "MessageStore"
     );
-    if (!handler) return () => {
-    };
-    return patcher.before("actionHandler", handler, callback);
-  } catch {
+    if (!handler) {
+      return () => {
+      };
+    }
+    return patcher.before(
+      "actionHandler",
+      handler,
+      callback
+    );
+  } catch (e) {
+    console.log(
+      "[CustomVoiceMessages+] Failed to patch " + event,
+      e
+    );
     return () => {
     };
   }
 }
 function msgSuccess() {
-  return safePatch("LOAD_MESSAGES_SUCCESS", (args) => {
-    if (!plugin.storage.allAsVM) return;
-    args?.[0]?.messages?.forEach((x) => {
-      if (x.flags == 8192) return;
-      x.attachments?.forEach((a) => {
-        if (a?.content_type?.startsWith?.("audio")) {
-          x.flags |= 8192;
-          a.waveform = generateWaveform();
-          a.duration_secs = 60;
+  return safePatch(
+    "LOAD_MESSAGES_SUCCESS",
+    (args) => {
+      if (!plugin.storage.allAsVM) {
+        return;
+      }
+      if (!args || !args[0] || !args[0].messages) {
+        return;
+      }
+      args[0].messages.forEach((x) => {
+        if (!x || x.flags == 8192) {
+          return;
         }
+        if (!x.attachments) {
+          return;
+        }
+        x.attachments.forEach((a) => {
+          if (a && a.content_type && a.content_type.startsWith("audio")) {
+            x.flags |= 8192;
+            a.waveform = generateWaveform();
+            a.duration_secs = 60;
+          }
+        });
       });
-    });
-  });
+    }
+  );
 }
 function msgCreate() {
-  return safePatch("MESSAGE_CREATE", (args) => {
-    const message = args?.[0]?.message;
-    if (!plugin.storage.allAsVM || message?.flags == 8192) return;
-    if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
-      message.flags |= 8192;
-      message.attachments.forEach((x) => {
-        x.waveform = generateWaveform();
-        x.duration_secs = 60;
-      });
+  return safePatch(
+    "MESSAGE_CREATE",
+    (args) => {
+      if (!args || !args[0]) {
+        return;
+      }
+      const message = args[0].message;
+      if (!message) {
+        return;
+      }
+      if (!plugin.storage.allAsVM || message.flags == 8192) {
+        return;
+      }
+      if (!message.attachments) {
+        return;
+      }
+      if (message.attachments[0] && message.attachments[0].content_type && message.attachments[0].content_type.startsWith("audio")) {
+        message.flags |= 8192;
+        message.attachments.forEach((x) => {
+          if (!x) {
+            return;
+          }
+          x.waveform = generateWaveform();
+          x.duration_secs = 60;
+        });
+      }
     }
-  });
+  );
 }
 function msgUpdate() {
-  return safePatch("MESSAGE_UPDATE", (args) => {
-    const message = args?.[0]?.message;
-    if (!plugin.storage.allAsVM || message?.flags == 8192) return;
-    if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
-      message.flags |= 8192;
-      message.attachments.forEach((x) => {
-        x.waveform = generateWaveform();
-        x.duration_secs = 60;
-      });
+  return safePatch(
+    "MESSAGE_UPDATE",
+    (args) => {
+      if (!args || !args[0]) {
+        return;
+      }
+      const message = args[0].message;
+      if (!message) {
+        return;
+      }
+      if (!plugin.storage.allAsVM || message.flags == 8192) {
+        return;
+      }
+      if (!message.attachments) {
+        return;
+      }
+      if (message.attachments[0] && message.attachments[0].content_type && message.attachments[0].content_type.startsWith("audio")) {
+        message.flags |= 8192;
+        message.attachments.forEach((x) => {
+          if (!x) {
+            return;
+          }
+          x.waveform = generateWaveform();
+          x.duration_secs = 60;
+        });
+      }
     }
-  });
+  );
 }const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
 var settings = () => {
   storage.useProxy(plugin.storage);
@@ -170,14 +231,20 @@ const onLoad = () => {
   try {
     patches.push(voiceMessages());
   } catch (e) {
-    console.log("[CustomVoiceMessages+] voiceMessages failed:", e);
+    console.log(
+      "[CustomVoiceMessages+] voiceMessages failed:",
+      e
+    );
   }
   try {
     patches.push(msgCreate());
     patches.push(msgSuccess());
     patches.push(msgUpdate());
   } catch (e) {
-    console.log("[CustomVoiceMessages+] messagePatches failed:", e);
+    console.log(
+      "[CustomVoiceMessages+] messagePatches failed:",
+      e
+    );
   }
 };
 const onUnload = () => {
