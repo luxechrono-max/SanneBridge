@@ -1,26 +1,12 @@
-import voiceMessages from "./patches/voiceMessages";
-import { msgCreate, msgSuccess, msgUpdate } from "./patches/messagePatches";
-import download from "./patches/download";
 import { storage } from "@vendetta/plugin";
 
 storage.sendAsVM ??= true;
 storage.allAsVM ??= false;
 
-let patches: (() => void)[] = [];
-
 export const onLoad = () => {
-    patches = [
-        voiceMessages(),
-        msgCreate(),
-        msgSuccess(),
-        msgUpdate(),
-        download()
-    ];
+    console.log("[CustomVoiceMessages+] LOADED");
 };
 
 export const onUnload = () => {
-    patches.forEach(p => p());
-    patches = [];
+    console.log("[CustomVoiceMessages+] UNLOADED");
 };
-
-export { default as settings } from "./settings";
