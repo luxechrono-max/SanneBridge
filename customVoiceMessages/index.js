@@ -212,11 +212,11 @@ var download = () => patcher.before("openLazy", ActionSheet, (ctx) => {
 });const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
 var settings = () => {
   storage.useProxy(plugin.storage);
-  return /* @__PURE__ */ React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ common.React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ common.React.createElement(
     FormSwitchRow,
     {
       label: "Send audio files as Voice Message",
-      leading: /* @__PURE__ */ React.createElement(
+      leading: /* @__PURE__ */ common.React.createElement(
         FormIcon,
         {
           source: assets.getAssetIDByName("voice_bar_mute_off")
@@ -225,11 +225,11 @@ var settings = () => {
       onValueChange: (v) => plugin.storage.sendAsVM = v,
       value: plugin.storage.sendAsVM
     }
-  ), /* @__PURE__ */ React.createElement(FormDivider, null), /* @__PURE__ */ React.createElement(
+  ), /* @__PURE__ */ common.React.createElement(FormDivider, null), /* @__PURE__ */ common.React.createElement(
     FormSwitchRow,
     {
       label: "Show every audio file as a Voice Message",
-      leading: /* @__PURE__ */ React.createElement(
+      leading: /* @__PURE__ */ common.React.createElement(
         FormIcon,
         {
           source: assets.getAssetIDByName("ic_stage_music")
