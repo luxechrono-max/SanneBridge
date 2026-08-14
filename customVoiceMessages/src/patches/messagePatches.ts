@@ -3,71 +3,120 @@ import { FluxDispatcher } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { generateWaveform } from "../waveform";
 
-function safePatch(event: string, callback: (args: any[]) => void) {
+const VOICE_MESSAGE_FLAG = 8192;
+
+function patchMessageEvent(
+    event: string,
+    callback: (message: any) => void
+) {
     try {
         const handlers =
-            FluxDispatcher?._actionHandlers?._computeOrderedActionHandlers?.(event);
+            FluxDispatcher?._actionHandlers?
+                ._computeOrderedActionHandlers?.(event);
 
         const handler = handlers?.find(
-            (i: any) => i.name === "MessageStore"
+            (x: any) => x?.name === "MessageStore"
         );
 
         if (!handler) return () => {};
 
-        return before("actionHandler", handler, callback);
+        return before(
+            "actionHandler",
+            handler,
+            (args) => {
+                try {
+                    const message = args?.[0]?.message;
+
+                    if (!message) return;
+
+                    callback(message);
+                } catch {}
+            }
+        );
     } catch {
         return () => {};
     }
 }
 
-export function msgSuccess() {
-    return safePatch("LOAD_MESSAGES_SUCCESS", (args) => {
-        if (!storage.allAsVM) return;
+function transformMessage(message: any) {
+    if (!message?.attachments?.length) return;
 
-        args?.[0]?.messages?.forEach((x: any) => {
-            if (x.flags == 8192) return;
+    const audio = message.attachments.some(
+        (a: any) =>
+            a?.content_type?.startsWith?.("audio") ||
+            a?.contentType?.startsWith?.("audio")
+    );
 
-            x.attachments?.forEach((a: any) => {
-                if (a?.content_type?.startsWith?.("audio")) {
-                    x.flags |= 8192;
-                    a.waveform = generateWaveform();
-                    a.duration_secs = 60;
-                }
-            });
-        });
+    if (!audio) return;
+
+    // This is the important part:
+    // mark the ACTUAL Discord message as a voice message.
+    message.flags =
+        (message.flags ?? 0) | VOICE_MESSAGE_FLAG;
+
+    message.attachments.forEach((attachment: any) => {
+        const isAudio =
+            attachment?.content_type?.startsWith?.("audio") ||
+            attachment?.contentType?.startsWith?.("audio");
+
+        if (!isAudio) return;
+
+        attachment.waveform =
+            attachment.waveform || generateWaveform();
+
+        // Discord message attachment field
+        attachment.duration_secs =
+            attachment.duration_secs ??
+            attachment.durationSecs ??
+            0;
     });
 }
 
 export function msgCreate() {
-    return safePatch("MESSAGE_CREATE", (args) => {
-        const message = args?.[0]?.message;
-
-        if (!storage.allAsVM || message?.flags == 8192) return;
-
-        if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
-            message.flags |= 8192;
-
-            message.attachments.forEach((x: any) => {
-                x.waveform = generateWaveform();
-                x.duration_secs = 60;
-            });
-        }
-    });
+    return patchMessageEvent(
+        "MESSAGE_CREATE",
+        transformMessage
+    );
 }
 
 export function msgUpdate() {
-    return safePatch("MESSAGE_UPDATE", (args) => {
-        const message = args?.[0]?.message;
+    return patchMessageEvent(
+        "MESSAGE_UPDATE",
+        transformMessage
+    );
+}
 
-        if (!storage.allAsVM || message?.flags == 8192) return;
+export function msgSuccess() {
+    try {
+        const handlers =
+            FluxDispatcher?._actionHandlers?
+                ._computeOrderedActionHandlers?.(
+                    "LOAD_MESSAGES_SUCCESS"
+                );
 
-        if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
-            message.flags |= 8192;
+        const handler = handlers?.find(
+            (x: any) => x?.name === "MessageStore"
+        );
 
-            message.attachments.forEach((x: any) => {
-                x.waveform = generateWaveform();
-                x.duration_secs = 60;
-            });
-        }
-    });
+        if (!handler) return () => {};
+
+        return before(
+            "actionHandler",
+            handler,
+            (args) => {
+                try {
+                    const messages =
+                        args?.[0]?.messages;
+
+                    if (!Array.isArray(messages)) return;
+
+                    messages.forEach(
+                        transformMessage
+                    );
+                } catch {}
+            }
+        );
+    } catch {
+        return () => {};
+    }
 }
