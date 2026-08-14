@@ -66,7 +66,61 @@ var voiceMessages = () => {
   return () => unpatches.forEach(
     (u) => u()
   );
-};const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
+};function safePatch(event, callback) {
+  try {
+    const handlers = common.FluxDispatcher?._actionHandlers?._computeOrderedActionHandlers?.(event);
+    const handler = handlers?.find(
+      (i) => i.name === "MessageStore"
+    );
+    if (!handler) return () => {
+    };
+    return patcher.before("actionHandler", handler, callback);
+  } catch {
+    return () => {
+    };
+  }
+}
+function msgSuccess() {
+  return safePatch("LOAD_MESSAGES_SUCCESS", (args) => {
+    if (!plugin.storage.allAsVM) return;
+    args?.[0]?.messages?.forEach((x) => {
+      if (x.flags == 8192) return;
+      x.attachments?.forEach((a) => {
+        if (a?.content_type?.startsWith?.("audio")) {
+          x.flags |= 8192;
+          a.waveform = generateWaveform();
+          a.duration_secs = 60;
+        }
+      });
+    });
+  });
+}
+function msgCreate() {
+  return safePatch("MESSAGE_CREATE", (args) => {
+    const message = args?.[0]?.message;
+    if (!plugin.storage.allAsVM || message?.flags == 8192) return;
+    if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
+      message.flags |= 8192;
+      message.attachments.forEach((x) => {
+        x.waveform = generateWaveform();
+        x.duration_secs = 60;
+      });
+    }
+  });
+}
+function msgUpdate() {
+  return safePatch("MESSAGE_UPDATE", (args) => {
+    const message = args?.[0]?.message;
+    if (!plugin.storage.allAsVM || message?.flags == 8192) return;
+    if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
+      message.flags |= 8192;
+      message.attachments.forEach((x) => {
+        x.waveform = generateWaveform();
+        x.duration_secs = 60;
+      });
+    }
+  });
+}const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
 var settings = () => {
   storage.useProxy(plugin.storage);
   return /* @__PURE__ */ common.React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ common.React.createElement(
@@ -99,18 +153,27 @@ var settings = () => {
 };var _a, _b;
 (_a = plugin.storage).sendAsVM ?? (_a.sendAsVM = true);
 (_b = plugin.storage).allAsVM ?? (_b.allAsVM = false);
-let voicePatch;
+let patches = [];
 const onLoad = () => {
   try {
-    voicePatch = voiceMessages();
+    patches.push(voiceMessages());
   } catch (e) {
-    console.log("[CustomVoiceMessages+] voice patch failed:", e);
+    console.log("[CustomVoiceMessages+] voiceMessages failed:", e);
+  }
+  try {
+    patches.push(msgCreate());
+    patches.push(msgSuccess());
+    patches.push(msgUpdate());
+  } catch (e) {
+    console.log("[CustomVoiceMessages+] messagePatches failed:", e);
   }
 };
 const onUnload = () => {
-  try {
-    voicePatch?.();
-  } catch {
-  }
-  voicePatch = void 0;
+  patches.forEach((p) => {
+    try {
+      p?.();
+    } catch {
+    }
+  });
+  patches = [];
 };exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.patcher,vendetta.plugin,vendetta.metro.common,vendetta.ui.components,vendetta.ui.assets,vendetta.storage);
