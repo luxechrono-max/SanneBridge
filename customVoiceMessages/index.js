@@ -242,13 +242,17 @@ var settings = () => {
 };var _a, _b;
 (_a = plugin.storage).sendAsVM ?? (_a.sendAsVM = true);
 (_b = plugin.storage).allAsVM ?? (_b.allAsVM = false);
-const patches = [
-  voiceMessages(),
-  msgCreate(),
-  msgSuccess(),
-  msgUpdate(),
-  download()
-];
+let patches = [];
+const onLoad = () => {
+  patches = [
+    voiceMessages(),
+    msgCreate(),
+    msgSuccess(),
+    msgUpdate(),
+    download()
+  ];
+};
 const onUnload = () => {
   patches.forEach((p) => p());
-};exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.patcher,vendetta.plugin,vendetta.metro.common,vendetta.ui.assets,vendetta.utils,vendetta.ui,vendetta.ui.components,vendetta.storage);
+  patches = [];
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.patcher,vendetta.plugin,vendetta.metro.common,vendetta.ui.assets,vendetta.utils,vendetta.ui,vendetta.ui.components,vendetta.storage);
