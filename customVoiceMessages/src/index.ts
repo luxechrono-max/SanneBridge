@@ -6,16 +6,21 @@ import { storage } from "@vendetta/plugin";
 storage.sendAsVM ??= true;
 storage.allAsVM ??= false;
 
-const patches = [
-    voiceMessages(),
-    msgCreate(),
-    msgSuccess(),
-    msgUpdate(),
-    download()
-];
+let patches: (() => void)[] = [];
+
+export const onLoad = () => {
+    patches = [
+        voiceMessages(),
+        msgCreate(),
+        msgSuccess(),
+        msgUpdate(),
+        download()
+    ];
+};
 
 export const onUnload = () => {
     patches.forEach(p => p());
+    patches = [];
 };
 
 export { default as settings } from "./settings";
