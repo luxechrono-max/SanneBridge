@@ -1,0 +1,11 @@
+{
+  "name": "custom-voice-messages-plus",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --outfile=dist/index.js --format=iife"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
