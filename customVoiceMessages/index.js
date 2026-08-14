@@ -66,58 +66,60 @@ var voiceMessages = () => {
   return () => unpatches.forEach(
     (u) => u()
   );
-};function msgSuccess() {
-  return patcher.before(
-    "actionHandler",
-    common.FluxDispatcher._actionHandlers._computeOrderedActionHandlers("LOAD_MESSAGES_SUCCESS").find((i) => i.name === "MessageStore"),
-    (args) => {
-      if (!plugin.storage.allAsVM) return;
-      args[0].messages.forEach((x) => {
-        if (x.flags == 8192) return;
-        x.attachments.forEach((a) => {
-          if (a.content_type?.startsWith?.("audio")) {
-            x.flags |= 8192;
-            a.waveform = generateWaveform();
-            a.duration_secs = 60;
-          }
-        });
+};function safePatch(event, callback) {
+  try {
+    const handlers = common.FluxDispatcher?._actionHandlers?._computeOrderedActionHandlers?.(event);
+    const handler = handlers?.find(
+      (i) => i.name === "MessageStore"
+    );
+    if (!handler) return () => {
+    };
+    return patcher.before("actionHandler", handler, callback);
+  } catch {
+    return () => {
+    };
+  }
+}
+function msgSuccess() {
+  return safePatch("LOAD_MESSAGES_SUCCESS", (args) => {
+    if (!plugin.storage.allAsVM) return;
+    args?.[0]?.messages?.forEach((x) => {
+      if (x.flags == 8192) return;
+      x.attachments?.forEach((a) => {
+        if (a?.content_type?.startsWith?.("audio")) {
+          x.flags |= 8192;
+          a.waveform = generateWaveform();
+          a.duration_secs = 60;
+        }
       });
-    }
-  );
+    });
+  });
 }
 function msgCreate() {
-  return patcher.before(
-    "actionHandler",
-    common.FluxDispatcher._actionHandlers._computeOrderedActionHandlers("MESSAGE_CREATE").find((i) => i.name === "MessageStore"),
-    (args) => {
-      if (!plugin.storage.allAsVM || args[0].message.flags == 8192) return;
-      const message = args[0].message;
-      if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
-        message.flags |= 8192;
-        message.attachments.forEach((x) => {
-          x.waveform = generateWaveform();
-          x.duration_secs = 60;
-        });
-      }
+  return safePatch("MESSAGE_CREATE", (args) => {
+    const message = args?.[0]?.message;
+    if (!plugin.storage.allAsVM || message?.flags == 8192) return;
+    if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
+      message.flags |= 8192;
+      message.attachments.forEach((x) => {
+        x.waveform = generateWaveform();
+        x.duration_secs = 60;
+      });
     }
-  );
+  });
 }
 function msgUpdate() {
-  return patcher.before(
-    "actionHandler",
-    common.FluxDispatcher._actionHandlers._computeOrderedActionHandlers("MESSAGE_UPDATE").find((i) => i.name === "MessageStore"),
-    (args) => {
-      if (!plugin.storage.allAsVM || args[0].message.flags == 8192) return;
-      const message = args[0].message;
-      if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
-        message.flags |= 8192;
-        message.attachments.forEach((x) => {
-          x.waveform = generateWaveform();
-          x.duration_secs = 60;
-        });
-      }
+  return safePatch("MESSAGE_UPDATE", (args) => {
+    const message = args?.[0]?.message;
+    if (!plugin.storage.allAsVM || message?.flags == 8192) return;
+    if (message?.attachments?.[0]?.content_type?.startsWith("audio")) {
+      message.flags |= 8192;
+      message.attachments.forEach((x) => {
+        x.waveform = generateWaveform();
+        x.duration_secs = 60;
+      });
     }
-  );
+  });
 }const { FormRow } = components.Forms;
 const ActionSheetRow = metro.findByProps("ActionSheetRow")?.ActionSheetRow;
 function CoolRow({
