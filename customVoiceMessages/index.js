@@ -30,42 +30,54 @@ function generateWaveform() {
     );
   }
   return btoa(binary);
-}function transform(item) {
-  if (item?.mimeType?.startsWith("audio")) {
-    item.mimeType = "audio/ogg";
-    item.waveform = generateWaveform();
-    item.durationSecs = 60;
+}const VOICE_MESSAGE_FLAG = 8192;
+function transform(item) {
+  if (!item?.mimeType?.startsWith("audio")) return;
+  item.mimeType = "audio/ogg";
+  item.waveform = generateWaveform();
+  item.duration_secs = item.duration_secs ?? item.durationSecs ?? 0;
+  item.durationSecs = item.duration_secs;
+}
+function patchUpload(method) {
+  const unpatches = [];
+  try {
+    const module = metro.findByProps(method);
+    if (!module) return () => {
+    };
+    const unpatch = patcher.before(method, module, (args) => {
+      try {
+        const upload = args?.[0];
+        if (!upload || !plugin.storage.sendAsVM) return;
+        const item = upload.items?.[0] ?? upload;
+        if (!item?.mimeType?.startsWith("audio")) return;
+        transform(item);
+        upload.flags = VOICE_MESSAGE_FLAG;
+        if (upload.items?.[0]) {
+          upload.items[0].flags = VOICE_MESSAGE_FLAG;
+        }
+      } catch {
+      }
+    });
+    unpatches.push(unpatch);
+  } catch {
   }
+  return () => {
+    unpatches.forEach((u) => {
+      try {
+        u();
+      } catch {
+      }
+    });
+  };
 }
 var voiceMessages = () => {
-  const unpatches = [];
-  const patch = (method) => {
-    try {
-      const module = metro.findByProps(method);
-      const unpatch = patcher.before(
-        method,
-        module,
-        (args) => {
-          const upload = args[0];
-          if (!plugin.storage.sendAsVM || upload.flags === 8192) {
-            return;
-          }
-          const item = upload.items?.[0] ?? upload;
-          if (item?.mimeType?.startsWith("audio")) {
-            transform(item);
-            upload.flags = 8192;
-          }
-        }
-      );
-      unpatches.push(unpatch);
-    } catch {
-    }
+  const unpatches = [
+    patchUpload("uploadLocalFiles"),
+    patchUpload("CloudUpload")
+  ];
+  return () => {
+    unpatches.forEach((u) => u());
   };
-  patch("uploadLocalFiles");
-  patch("CloudUpload");
-  return () => unpatches.forEach(
-    (u) => u()
-  );
 };function safePatch(event, callback) {
   try {
     const handlers = common.FluxDispatcher?._actionHandlers?._computeOrderedActionHandlers?.(event);
