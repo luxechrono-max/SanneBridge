@@ -1,0 +1,14 @@
+{
+    "name": "Custom Voice Messages+",
+    "description": "Send audio files as Discord voice messages with varied waveforms.",
+    "authors": [
+        {
+            "name": "Noba",
+            "id": "1212852145888559177"
+        }
+    ],
+    "main": "src/index.ts",
+    "vendetta": {
+        "icon": "voice_bar_mute_off"
+    }
+}
