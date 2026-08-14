@@ -1,4 +1,4 @@
-(function(exports,metro,patcher,plugin,common,components,assets,storage){'use strict';function randomByte(min, max) {
+(function(exports,metro,patcher,plugin,common,assets,utils,ui,components,storage){'use strict';function randomByte(min, max) {
   return Math.floor(
     min + Math.random() * (max - min + 1)
   );
@@ -120,7 +120,147 @@ function msgUpdate() {
       });
     }
   });
-}const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
+}const { FormRow } = components.Forms;
+const ActionSheetRow = metro.findByProps("ActionSheetRow")?.ActionSheetRow;
+function CoolRow({
+  label,
+  icon,
+  onPress
+}) {
+  const styles = common.stylesheet.createThemedStyleSheet({
+    iconComponent: {
+      width: 24,
+      height: 24,
+      tintColor: ui.semanticColors.INTERACTIVE_NORMAL
+    }
+  });
+  return ActionSheetRow ? /* @__PURE__ */ common.React.createElement(
+    ActionSheetRow,
+    {
+      label,
+      icon: /* @__PURE__ */ common.React.createElement(
+        ActionSheetRow.Icon,
+        {
+          source: icon,
+          IconComponent: () => /* @__PURE__ */ common.React.createElement(
+            common.ReactNative.Image,
+            {
+              resizeMode: "cover",
+              style: styles.iconComponent,
+              source: icon
+            }
+          )
+        }
+      ),
+      onPress: () => onPress?.()
+    }
+  ) : /* @__PURE__ */ common.React.createElement(
+    FormRow,
+    {
+      label,
+      leading: /* @__PURE__ */ common.React.createElement(FormRow.Icon, { source: icon }),
+      onPress: () => onPress?.()
+    }
+  );
+}var download = () => {
+  const unpatches = [];
+  try {
+    const ActionSheet = metro.findByProps(
+      "openLazy",
+      "hideActionSheet"
+    );
+    if (!ActionSheet) return () => {
+    };
+    const unpatch = patcher.before(
+      "openLazy",
+      ActionSheet,
+      (ctx) => {
+        try {
+          const [component, args, actionMessage] = ctx;
+          const message = actionMessage?.message;
+          if (args !== "MessageLongPressActionSheet" || !message) {
+            return;
+          }
+          component?.then?.((instance) => {
+            try {
+              const unpatchAfter = patcher.after(
+                "default",
+                instance,
+                (_, component2) => {
+                  const buttons = utils.findInReactTree(
+                    component2,
+                    (x) => x?.[0]?.type?.name === "ButtonRow"
+                  );
+                  if (!buttons) return component2;
+                  if (message.hasFlag?.(8192)) {
+                    buttons.splice(
+                      5,
+                      0,
+                      common.React.createElement(CoolRow, {
+                        label: "Download Voice Message",
+                        icon: assets.getAssetIDByName(
+                          "ic_download_24px"
+                        ),
+                        onPress: async () => {
+                          try {
+                            await metro.findByProps(
+                              "downloadMediaAsset"
+                            )?.downloadMediaAsset(
+                              message.attachments[0].url,
+                              0
+                            );
+                            metro.findByProps(
+                              "hideActionSheet"
+                            )?.hideActionSheet();
+                          } catch {
+                          }
+                        }
+                      })
+                    );
+                    buttons.splice(
+                      6,
+                      0,
+                      common.React.createElement(CoolRow, {
+                        label: "Copy Voice Message URL",
+                        icon: assets.getAssetIDByName("copy"),
+                        onPress: async () => {
+                          try {
+                            const { clipboard } = require("@vendetta/metro/common");
+                            clipboard.setString(
+                              message.attachments[0].url
+                            );
+                            metro.findByProps(
+                              "hideActionSheet"
+                            )?.hideActionSheet();
+                          } catch {
+                          }
+                        }
+                      })
+                    );
+                  }
+                  return component2;
+                }
+              );
+              unpatches.push(unpatchAfter);
+            } catch {
+            }
+          });
+        } catch {
+        }
+      }
+    );
+    unpatches.push(unpatch);
+  } catch {
+  }
+  return () => {
+    unpatches.forEach((u) => {
+      try {
+        u?.();
+      } catch {
+      }
+    });
+  };
+};const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
 var settings = () => {
   storage.useProxy(plugin.storage);
   return /* @__PURE__ */ common.React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ common.React.createElement(
@@ -167,6 +307,11 @@ const onLoad = () => {
   } catch (e) {
     console.log("[CustomVoiceMessages+] messagePatches failed:", e);
   }
+  try {
+    patches.push(download());
+  } catch (e) {
+    console.log("[CustomVoiceMessages+] download failed:", e);
+  }
 };
 const onUnload = () => {
   patches.forEach((p) => {
@@ -176,4 +321,4 @@ const onUnload = () => {
     }
   });
   patches = [];
-};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.patcher,vendetta.plugin,vendetta.metro.common,vendetta.ui.components,vendetta.ui.assets,vendetta.storage);
+};exports.onLoad=onLoad;exports.onUnload=onUnload;exports.settings=settings;return exports;})({},vendetta.metro,vendetta.patcher,vendetta.plugin,vendetta.metro.common,vendetta.ui.assets,vendetta.utils,vendetta.ui,vendetta.ui.components,vendetta.storage);
