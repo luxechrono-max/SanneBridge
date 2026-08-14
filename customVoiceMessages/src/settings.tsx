@@ -1,4 +1,4 @@
-import { ReactNative } from "@vendetta/metro/common";
+import { React, ReactNative } from "@vendetta/metro/common";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 import { storage } from "@vendetta/plugin";
