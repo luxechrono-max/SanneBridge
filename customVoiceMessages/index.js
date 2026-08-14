@@ -162,56 +162,105 @@ function CoolRow({
       onPress: () => onPress?.()
     }
   );
-}const ActionSheet = metro.findByProps("openLazy", "hideActionSheet");
-var download = () => patcher.before("openLazy", ActionSheet, (ctx) => {
-  const [component, args, actionMessage] = ctx;
-  const message = actionMessage?.message;
-  if (args !== "MessageLongPressActionSheet" || !message) return;
-  component.then((instance) => {
-    const unpatch = patcher.after("default", instance, (_, component2) => {
-      common.React.useEffect(() => () => {
-        unpatch();
-      }, []);
-      const buttons = utils.findInReactTree(
-        component2,
-        (x) => x?.[0]?.type?.name === "ButtonRow"
-      );
-      if (!buttons) return component2;
-      if (message.hasFlag(8192)) {
-        buttons.splice(
-          5,
-          0,
-          /* @__PURE__ */ common.React.createElement(
-            CoolRow,
-            {
-              label: "Download Voice Message",
-              icon: assets.getAssetIDByName("ic_download_24px"),
-              onPress: async () => {
-                await metro.findByProps("downloadMediaAsset").downloadMediaAsset(message.attachments[0].url, 0);
-                metro.findByProps("hideActionSheet").hideActionSheet();
-              }
+}var download = () => {
+  const unpatches = [];
+  try {
+    const ActionSheet = metro.findByProps(
+      "openLazy",
+      "hideActionSheet"
+    );
+    if (!ActionSheet) return () => {
+    };
+    const unpatch = patcher.before(
+      "openLazy",
+      ActionSheet,
+      (ctx) => {
+        try {
+          const [component, args, actionMessage] = ctx;
+          const message = actionMessage?.message;
+          if (args !== "MessageLongPressActionSheet" || !message) {
+            return;
+          }
+          component?.then?.((instance) => {
+            try {
+              const unpatchAfter = patcher.after(
+                "default",
+                instance,
+                (_, component2) => {
+                  const buttons = utils.findInReactTree(
+                    component2,
+                    (x) => x?.[0]?.type?.name === "ButtonRow"
+                  );
+                  if (!buttons) return component2;
+                  if (message.hasFlag?.(8192)) {
+                    buttons.splice(
+                      5,
+                      0,
+                      common.React.createElement(CoolRow, {
+                        label: "Download Voice Message",
+                        icon: assets.getAssetIDByName(
+                          "ic_download_24px"
+                        ),
+                        onPress: async () => {
+                          try {
+                            await metro.findByProps(
+                              "downloadMediaAsset"
+                            )?.downloadMediaAsset(
+                              message.attachments[0].url,
+                              0
+                            );
+                            metro.findByProps(
+                              "hideActionSheet"
+                            )?.hideActionSheet();
+                          } catch {
+                          }
+                        }
+                      })
+                    );
+                    buttons.splice(
+                      6,
+                      0,
+                      common.React.createElement(CoolRow, {
+                        label: "Copy Voice Message URL",
+                        icon: assets.getAssetIDByName("copy"),
+                        onPress: async () => {
+                          try {
+                            const { clipboard } = require("@vendetta/metro/common");
+                            clipboard.setString(
+                              message.attachments[0].url
+                            );
+                            metro.findByProps(
+                              "hideActionSheet"
+                            )?.hideActionSheet();
+                          } catch {
+                          }
+                        }
+                      })
+                    );
+                  }
+                  return component2;
+                }
+              );
+              unpatches.push(unpatchAfter);
+            } catch {
             }
-          )
-        );
-        buttons.splice(
-          6,
-          0,
-          /* @__PURE__ */ common.React.createElement(
-            CoolRow,
-            {
-              label: "Copy Voice Message URL",
-              icon: assets.getAssetIDByName("copy"),
-              onPress: async () => {
-                common.clipboard.setString(message.attachments[0].url);
-                metro.findByProps("hideActionSheet").hideActionSheet();
-              }
-            }
-          )
-        );
+          });
+        } catch {
+        }
+      }
+    );
+    unpatches.push(unpatch);
+  } catch {
+  }
+  return () => {
+    unpatches.forEach((u) => {
+      try {
+        u?.();
+      } catch {
       }
     });
-  });
-});const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
+  };
+};const { FormDivider, FormIcon, FormSwitchRow } = components.Forms;
 var settings = () => {
   storage.useProxy(plugin.storage);
   return /* @__PURE__ */ common.React.createElement(common.ReactNative.ScrollView, null, /* @__PURE__ */ common.React.createElement(
