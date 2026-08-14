@@ -4,7 +4,6 @@ import {
     msgSuccess,
     msgUpdate
 } from "./patches/messagePatches";
-import download from "./patches/download";
 import { storage } from "@vendetta/plugin";
 
 storage.sendAsVM ??= true;
@@ -25,12 +24,6 @@ export const onLoad = () => {
         patches.push(msgUpdate());
     } catch (e) {
         console.log("[CustomVoiceMessages+] messagePatches failed:", e);
-    }
-
-    try {
-        patches.push(download());
-    } catch (e) {
-        console.log("[CustomVoiceMessages+] download failed:", e);
     }
 };
 
